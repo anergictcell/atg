@@ -3,6 +3,14 @@ name = "atg"
 version = "0.1.0"
 authors = ["Jonas Marcello <jonas.marcello@esbme.com>"]
 edition = "2018"
+description = "A utility to handle transcripts for genomics and transcriptomics"
+readme = "README.md"
+homepage = "https://github.com/anergictcell/atg"
+repository = "https://github.com/anergictcell/atg"
+license = "MIT"
+license-file = "LICENSE"
+keywords = ["bioinformatics", "genomics", "transcriptomics", "transcript", "genetics"]
+categories = ["science", "data-structures", "command-line-utilities"]
 
 [dependencies]
 clap = "2.33.3"
