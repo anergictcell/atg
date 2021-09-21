@@ -1,0 +1,14 @@
+chr14	ncbiRefSeq.2021-05-17	transcript	106318298	106322322	.	-	.	gene_id "IGHM"; transcript_id "id-IGHM";  gene_name "IGHM";
+chr14	ncbiRefSeq.2021-05-17	exon	106318298	106318306	.	-	.	gene_id "IGHM"; transcript_id "id-IGHM"; exon_number "6"; exon_id "id-IGHM.6"; gene_name "IGHM";
+chr14	ncbiRefSeq.2021-05-17	CDS	106318298	106318306	.	-	1	gene_id "IGHM"; transcript_id "id-IGHM"; exon_number "6"; exon_id "id-IGHM.6"; gene_name "IGHM";
+chr14	ncbiRefSeq.2021-05-17	exon	106318480	106318595	.	-	.	gene_id "IGHM"; transcript_id "id-IGHM"; exon_number "5"; exon_id "id-IGHM.5"; gene_name "IGHM";
+chr14	ncbiRefSeq.2021-05-17	CDS	106318480	106318595	.	-	0	gene_id "IGHM"; transcript_id "id-IGHM"; exon_number "5"; exon_id "id-IGHM.5"; gene_name "IGHM";
+chr14	ncbiRefSeq.2021-05-17	exon	106320510	106320842	.	-	.	gene_id "IGHM"; transcript_id "id-IGHM"; exon_number "4"; exon_id "id-IGHM.4"; gene_name "IGHM";
+chr14	ncbiRefSeq.2021-05-17	CDS	106320510	106320842	.	-	0	gene_id "IGHM"; transcript_id "id-IGHM"; exon_number "4"; exon_id "id-IGHM.4"; gene_name "IGHM";
+chr14	ncbiRefSeq.2021-05-17	exon	106321022	106321339	.	-	.	gene_id "IGHM"; transcript_id "id-IGHM"; exon_number "3"; exon_id "id-IGHM.3"; gene_name "IGHM";
+chr14	ncbiRefSeq.2021-05-17	CDS	106321022	106321339	.	-	0	gene_id "IGHM"; transcript_id "id-IGHM"; exon_number "3"; exon_id "id-IGHM.3"; gene_name "IGHM";
+chr14	ncbiRefSeq.2021-05-17	exon	106321585	106321920	.	-	.	gene_id "IGHM"; transcript_id "id-IGHM"; exon_number "2"; exon_id "id-IGHM.2"; gene_name "IGHM";
+chr14	ncbiRefSeq.2021-05-17	CDS	106321585	106321920	.	-	0	gene_id "IGHM"; transcript_id "id-IGHM"; exon_number "2"; exon_id "id-IGHM.2"; gene_name "IGHM";
+chr14	ncbiRefSeq.2021-05-17	exon	106322011	106322322	.	-	.	gene_id "IGHM"; transcript_id "id-IGHM"; exon_number "1"; exon_id "id-IGHM.1"; gene_name "IGHM";
+chr14	ncbiRefSeq.2021-05-17	CDS	106322011	106322322	.	-	0	gene_id "IGHM"; transcript_id "id-IGHM"; exon_number "1"; exon_id "id-IGHM.1"; gene_name "IGHM";
+chr14	ncbiRefSeq.2021-05-17	start_codon	106322320	106322322	.	-	0	gene_id "IGHM"; transcript_id "id-IGHM"; exon_number "1"; exon_id "id-IGHM.1"; gene_name "IGHM";

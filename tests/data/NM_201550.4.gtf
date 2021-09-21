@@ -1,0 +1,7 @@
+chr12	ncbiRefSeq.2021-05-17	transcript	70002344	70004687	.	-	.	gene_id "LRRC10"; transcript_id "NM_201550.4";  gene_name "LRRC10";
+chr12	ncbiRefSeq.2021-05-17	exon	70002344	70004687	.	-	.	gene_id "LRRC10"; transcript_id "NM_201550.4"; exon_number "1"; exon_id "NM_201550.4.1"; gene_name "LRRC10";
+chr12	ncbiRefSeq.2021-05-17	3UTR	70002344	70003784	.	-	.	gene_id "LRRC10"; transcript_id "NM_201550.4"; exon_number "1"; exon_id "NM_201550.4.1"; gene_name "LRRC10";
+chr12	ncbiRefSeq.2021-05-17	CDS	70003788	70004618	.	-	0	gene_id "LRRC10"; transcript_id "NM_201550.4"; exon_number "1"; exon_id "NM_201550.4.1"; gene_name "LRRC10";
+chr12	ncbiRefSeq.2021-05-17	5UTR	70004619	70004687	.	-	.	gene_id "LRRC10"; transcript_id "NM_201550.4"; exon_number "1"; exon_id "NM_201550.4.1"; gene_name "LRRC10";
+chr12	ncbiRefSeq.2021-05-17	start_codon	70004616	70004618	.	-	0	gene_id "LRRC10"; transcript_id "NM_201550.4"; exon_number "1"; exon_id "NM_201550.4.1"; gene_name "LRRC10";
+chr12	ncbiRefSeq.2021-05-17	stop_codon	70003785	70003787	.	-	0	gene_id "LRRC10"; transcript_id "NM_201550.4"; exon_number "1"; exon_id "NM_201550.4.1"; gene_name "LRRC10";

@@ -1,0 +1,11 @@
+chr9	ncbiRefSeq.2021-05-17	transcript	74526555	74600974	.	+	.	gene_id "C9orf85"; transcript_id "NM_001365057.2";  gene_name "C9orf85";
+chr9	ncbiRefSeq.2021-05-17	exon	74526555	74526752	.	+	.	gene_id "C9orf85"; transcript_id "NM_001365057.2"; exon_number "1"; exon_id "NM_001365057.2.1"; gene_name "C9orf85";
+chr9	ncbiRefSeq.2021-05-17	5UTR	74526555	74526650	.	+	.	gene_id "C9orf85"; transcript_id "NM_001365057.2"; exon_number "1"; exon_id "NM_001365057.2.1"; gene_name "C9orf85";
+chr9	ncbiRefSeq.2021-05-17	CDS	74526651	74526752	.	+	0	gene_id "C9orf85"; transcript_id "NM_001365057.2"; exon_number "1"; exon_id "NM_001365057.2.1"; gene_name "C9orf85";
+chr9	ncbiRefSeq.2021-05-17	exon	74561922	74562028	.	+	.	gene_id "C9orf85"; transcript_id "NM_001365057.2"; exon_number "2"; exon_id "NM_001365057.2.2"; gene_name "C9orf85";
+chr9	ncbiRefSeq.2021-05-17	CDS	74561922	74562026	.	+	0	gene_id "C9orf85"; transcript_id "NM_001365057.2"; exon_number "2"; exon_id "NM_001365057.2.2"; gene_name "C9orf85";
+chr9	ncbiRefSeq.2021-05-17	exon	74597573	74600974	.	+	.	gene_id "C9orf85"; transcript_id "NM_001365057.2"; exon_number "3"; exon_id "NM_001365057.2.3"; gene_name "C9orf85";
+chr9	ncbiRefSeq.2021-05-17	3UTR	74597574	74600974	.	+	.	gene_id "C9orf85"; transcript_id "NM_001365057.2"; exon_number "3"; exon_id "NM_001365057.2.3"; gene_name "C9orf85";
+chr9	ncbiRefSeq.2021-05-17	start_codon	74526651	74526653	.	+	0	gene_id "C9orf85"; transcript_id "NM_001365057.2"; exon_number "1"; exon_id "NM_001365057.2.1"; gene_name "C9orf85";
+chr9	ncbiRefSeq.2021-05-17	stop_codon	74562027	74562028	.	+	0	gene_id "C9orf85"; transcript_id "NM_001365057.2"; exon_number "2"; exon_id "NM_001365057.2.2"; gene_name "C9orf85";
+chr9	ncbiRefSeq.2021-05-17	stop_codon	74597573	74597573	.	+	1	gene_id "C9orf85"; transcript_id "NM_001365057.2"; exon_number "3"; exon_id "NM_001365057.2.3"; gene_name "C9orf85";

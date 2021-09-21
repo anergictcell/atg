@@ -1,0 +1,17 @@
+pub const N_REFGENE_COLUMNS: usize = 16;
+pub const BIN_COL: usize = 0;
+pub const TRANSCRIPT_COL: usize = 1;
+pub const CHROMOSOME_COL: usize = 2;
+pub const STRAND_COL: usize = 3;
+pub const TX_START_COL: usize = 4;
+pub const TX_END_COL: usize = 5;
+pub const CDS_START_COL: usize = 6;
+pub const CDS_END_COL: usize = 7;
+pub const EXON_COUNT_COL: usize = 8;
+pub const EXON_STARTS_COL: usize = 9;
+pub const EXON_ENDS_COL: usize = 10;
+pub const SCORE_COL: usize = 11;
+pub const GENE_SYMBOL_COL: usize = 12;
+pub const CDS_START_STAT_COL: usize = 13;
+pub const CDS_END_STAT_COL: usize = 14;
+pub const EXON_FRAMES_COL: usize = 15;
