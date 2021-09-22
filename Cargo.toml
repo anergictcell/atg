@@ -7,7 +7,6 @@ description = "A utility to handle transcripts for genomics and transcriptomics"
 readme = "README.md"
 homepage = "https://github.com/anergictcell/atg"
 repository = "https://github.com/anergictcell/atg"
-license = "MIT"
 license-file = "LICENSE"
 keywords = ["bioinformatics", "genomics", "transcriptomics", "transcript", "genetics"]
 categories = ["science", "data-structures", "command-line-utilities"]
