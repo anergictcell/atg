@@ -5,7 +5,8 @@ use std::io::{BufRead, BufReader};
 use std::path::Path;
 use std::str::FromStr;
 
-use crate::gtf::{GtfFeature, GtfRecord, GtfRecordsGroup, ParseGtfError};
+use crate::gtf::{GtfFeature, GtfRecord, GtfRecordsGroup};
+use crate::gtf::utils::ParseGtfError;
 use crate::models::{Transcript, TranscriptRead, Transcripts};
 use crate::utils::errors::ReadWriteError;
 

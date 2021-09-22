@@ -4,8 +4,7 @@ use std::io::{BufWriter, Write};
 use std::path::Path;
 
 use crate::gtf::record::{GtfFeature, GtfRecord, GtfRecordBuilder};
-use crate::gtf::Attributes;
-use crate::gtf::ParseGtfError;
+use crate::gtf::utils::{Attributes, ParseGtfError};
 use crate::models::TranscriptWrite;
 use crate::models::{CdsStat, Exon, Frame, Strand, Transcript};
 use crate::utils::errors::ReadWriteError;

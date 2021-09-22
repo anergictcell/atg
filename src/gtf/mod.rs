@@ -14,17 +14,15 @@
 // [attributes]         varchar     key=value list (separated by ; ); Must contain gene_id and transcript_id
 // comments             varchar     (optional)
 
-pub mod constants;
-pub mod reader;
-pub mod record;
-pub mod transcript;
-pub mod utils;
-pub mod writer;
+mod constants;
+mod reader;
+mod record;
+mod transcript;
+mod utils;
+mod writer;
 
 pub use crate::gtf::reader::Reader;
 pub use crate::gtf::record::{GtfFeature, GtfRecord, GtfRecordBuilder};
-use crate::gtf::transcript::GtfRecordsGroup;
-pub use crate::gtf::utils::{Attributes, ParseGtfError};
+pub use crate::gtf::utils::ParseGtfError;
 pub use crate::gtf::writer::{Composer, Writer};
-pub use crate::models;
-pub use crate::models::{Exon, Frame, Strand, Transcript};
+use crate::gtf::transcript::GtfRecordsGroup;

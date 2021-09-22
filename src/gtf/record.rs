@@ -3,7 +3,7 @@ use core::str::FromStr;
 use std::fmt;
 
 use crate::gtf::constants::*;
-use crate::gtf::{Attributes, ParseGtfError};
+use crate::gtf::utils::{Attributes, ParseGtfError};
 use crate::models;
 use crate::models::{Exon, Frame, Strand};
 
