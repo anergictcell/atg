@@ -1,53 +1,7 @@
 use crate::models::Transcript;
-use crate::utils::errors::BuildTranscriptError;
+use crate::utils::errors::ParseGtfError;
 
-use std::error::Error;
-use std::fmt;
 use std::str::FromStr;
-
-pub struct ParseGtfError {
-    pub message: String,
-}
-
-impl ParseGtfError {
-    pub fn new(m: &str) -> Self {
-        Self {
-            message: m.to_string(),
-        }
-    }
-
-    pub fn from_chain(err: ParseGtfError, msg: &str) -> Self {
-        Self {
-            message: format!("{}\nPrevious error: {}", msg, err),
-        }
-    }
-}
-
-impl Error for ParseGtfError {}
-
-impl fmt::Display for ParseGtfError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        // user-facing error
-        write!(
-            f,
-            "An error occurred while parsing the GTF input. Please check your input data.\n{}",
-            self.message
-        )
-    }
-}
-
-impl fmt::Debug for ParseGtfError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        // developer-facing error
-        write!(f, "{{ file: {}, line: {} }}", file!(), line!())
-    }
-}
-
-impl From<BuildTranscriptError> for ParseGtfError {
-    fn from(f: BuildTranscriptError) -> ParseGtfError {
-        ParseGtfError::new(&f.to_string())
-    }
-}
 
 #[derive(Debug, PartialEq)]
 pub struct Attributes {

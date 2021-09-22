@@ -4,10 +4,11 @@ use std::io::{BufWriter, Write};
 use std::path::Path;
 
 use crate::gtf::record::{GtfFeature, GtfRecord, GtfRecordBuilder};
-use crate::gtf::utils::{Attributes, ParseGtfError};
+use crate::gtf::utils::Attributes;
+
 use crate::models::TranscriptWrite;
 use crate::models::{CdsStat, Exon, Frame, Strand, Transcript};
-use crate::utils::errors::ReadWriteError;
+use crate::utils::errors::{ParseGtfError, ReadWriteError};
 use crate::utils::subtract;
 
 /// Writes GTF records into a `BufWriter`
@@ -98,7 +99,7 @@ fn compose_lines(transcript: &Transcript, source: &str) -> Vec<GtfRecord> {
     composer.build()
 }
 
-pub struct Composer<'a> {
+struct Composer<'a> {
     transcript: &'a Transcript,
     source: &'a str,
 }

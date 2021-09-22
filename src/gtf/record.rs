@@ -3,7 +3,8 @@ use core::str::FromStr;
 use std::fmt;
 
 use crate::gtf::constants::*;
-use crate::gtf::utils::{Attributes, ParseGtfError};
+use crate::gtf::utils::Attributes;
+use crate::utils::errors::ParseGtfError;
 use crate::models;
 use crate::models::{Exon, Frame, Strand};
 
@@ -298,6 +299,7 @@ impl From<GtfRecord> for models::Exon {
     }
 }
 
+/// A builder for `GtfRecord`s, providing a cleaner API
 pub struct GtfRecordBuilder<'a> {
     chrom: Option<&'a str>,
     source: Option<&'a str>,

@@ -4,7 +4,7 @@ use std::path::Path;
 
 use crate::models::{Transcript, TranscriptWrite};
 use crate::refgene::constants::*;
-use crate::refgene::ParseRefGeneError;
+use crate::refgene::utils::ParseRefGeneError;
 use crate::utils::errors::ReadWriteError;
 
 pub struct Writer<W: std::io::Write> {

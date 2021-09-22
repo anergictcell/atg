@@ -23,6 +23,5 @@ mod writer;
 
 pub use crate::gtf::reader::Reader;
 pub use crate::gtf::record::{GtfFeature, GtfRecord, GtfRecordBuilder};
-pub use crate::gtf::utils::ParseGtfError;
-pub use crate::gtf::writer::{Composer, Writer};
+pub use crate::gtf::writer::Writer;
 use crate::gtf::transcript::GtfRecordsGroup;

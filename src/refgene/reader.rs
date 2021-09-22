@@ -4,11 +4,9 @@ use std::io::{BufRead, BufReader};
 use std::path::Path;
 use std::str::FromStr;
 
-// use rayon::prelude::*;
-
 use crate::models::Transcripts;
 use crate::refgene::constants::*;
-use crate::refgene::ParseRefGeneError;
+use crate::refgene::utils::ParseRefGeneError;
 
 use crate::models;
 use crate::models::{CdsStat, Exon, Frame, Strand, TranscriptBuilder};

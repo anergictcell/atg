@@ -6,11 +6,11 @@ use std::path::Path;
 use std::str::FromStr;
 
 use crate::gtf::{GtfFeature, GtfRecord, GtfRecordsGroup};
-use crate::gtf::utils::ParseGtfError;
+use crate::utils::errors::ParseGtfError;
 use crate::models::{Transcript, TranscriptRead, Transcripts};
 use crate::utils::errors::ReadWriteError;
 
-/// Reads a GTF file
+/// Reads and parses a GTF file from a `BufReader`
 pub struct Reader<R> {
     inner: std::io::BufReader<R>,
 }

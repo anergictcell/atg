@@ -25,14 +25,13 @@
 // cdsEndStat  none    enum('none', 'unk', 'incmpl', 'cmpl')   values  Status of CDS end annotation (none, unknown, incomplete, or complete)
 // exonFrames  -1,-1,-1,   longblob        Exon frame {0,1,2}, or -1 if no frame for exon
 
-pub mod constants;
-pub mod reader;
+mod constants;
+mod reader;
 pub mod utils;
-pub mod writer;
+mod writer;
 
-pub use crate::refgene::constants::*;
 pub use crate::refgene::reader::Reader;
-pub use crate::refgene::utils::ParseRefGeneError;
+// pub use crate::refgene::utils::ParseRefGeneError;
 pub use crate::refgene::writer::Writer;
 
 #[cfg(test)]

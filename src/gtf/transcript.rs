@@ -2,7 +2,7 @@ use core::convert::TryFrom;
 use std::fmt;
 
 use crate::gtf::{GtfFeature, GtfRecord};
-use crate::gtf::utils::ParseGtfError;
+use crate::utils::errors::ParseGtfError;
 use crate::models::{CdsStat, Exon, Transcript, TranscriptBuilder};
 
 pub struct GtfRecordsGroup {
