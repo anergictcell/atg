@@ -5,6 +5,11 @@ use crate::gtf::{GtfFeature, GtfRecord};
 use crate::utils::errors::ParseGtfError;
 use crate::models::{CdsStat, Exon, Transcript, TranscriptBuilder};
 
+/// Groups all [`GtfRecord`] object that belong to one Transcript
+///
+/// Most transcripts are composed of several [`GtfRecord`]s.
+/// [`GtfRecordsGroup`] handles the grouping and allows
+/// conversions into [`Transcript`](Transcript).
 pub struct GtfRecordsGroup {
     transcript: String,
     exons: Vec<GtfRecord>,
@@ -24,7 +29,7 @@ impl GtfRecordsGroup {
         self.exons.push(exon)
     }
 
-    pub fn exons(&self) -> &Vec<GtfRecord> {
+    fn exons(&self) -> &Vec<GtfRecord> {
         &self.exons
     }
 
@@ -56,7 +61,7 @@ impl GtfRecordsGroup {
         Some(exon)
     }
 
-    /// Returns all exons of the transcript as ```Vector```
+    /// Returns all exons of the transcript as `Vector`
     ///
     /// All rows of the GFT file are grouped by genomic location
     pub fn to_exons(&mut self) -> Vec<Exon> {
@@ -116,7 +121,7 @@ impl fmt::Display for GtfRecordsGroup {
 
 impl TryFrom<GtfRecordsGroup> for Transcript {
     type Error = ParseGtfError;
-    /// Returns a ```Transcript``` based on features of the GTF file,
+    /// Returns a `Transcript` based on features of the GTF file,
     /// belonging to one transcript
     fn try_from(mut gtf_transcript: GtfRecordsGroup) -> Result<Self, ParseGtfError> {
         if gtf_transcript.exons.is_empty() {

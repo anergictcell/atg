@@ -8,6 +8,7 @@ use crate::utils::errors::ParseGtfError;
 use crate::models;
 use crate::models::{Exon, Frame, Strand};
 
+/// Describes the actual feature type (Exon, CDS, etc) of [`GtfRecord`]
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum GtfFeature {
     Exon,
@@ -73,9 +74,12 @@ impl fmt::Display for GtfFeature {
     }
 }
 
-/// A single row of a GTF file is one `GtfRecord`
+/// Represents a single line of a GTF file (or other input)
+///
 /// One record *does not* equal a transcript, but only one subset feature
 /// e.g.: Exon, Start-Codon etc
+///
+/// Use [`GtfRecordBuilder`] to create [`GtfRecord`]
 #[derive(Debug, PartialEq)]
 pub struct GtfRecord {
     chrom: String,
@@ -91,32 +95,44 @@ pub struct GtfRecord {
 }
 
 impl GtfRecord {
+    /// The associated gene symbol
     pub fn gene(&self) -> &str {
         self.attributes.gene()
     }
 
+    /// The associated transcript name
     pub fn transcript(&self) -> &str {
         self.attributes.transcript()
     }
 
+    /// The genomic seqname, in most cases the chromosome
     pub fn chrom(&self) -> &str {
         &self.chrom
     }
 
+    /// The [`Strand`](crate::models::Strand) of the transcript
     pub fn strand(&self) -> &Strand {
         &self.strand
     }
 
+    /// The confidence score of the annotation
     pub fn score(&self) -> &Option<f32> {
         &self.score
     }
 
+    /// The type of [feature](GtfFeature) (CDS, Exon, Start-Codon, etc)
     pub fn feature(&self) -> &GtfFeature {
         &self.feature
     }
 
+    /// the start (genomic left-most) position of the Record
     pub fn start(&self) -> u32 {
         self.start
+    }
+
+    /// the end (genomic right-most) position of the Record
+    pub fn end(&self) -> u32 {
+        self.end
     }
 
     fn attributes_to_string(&self) -> String {
@@ -127,6 +143,10 @@ impl GtfRecord {
         res.join(" ")
     }
 
+    /// Modifies an [`Exon`](crate::models::Exon) to include the [`GtfRecord`]
+    ///
+    /// use this method if you want to update an [`Exon`](crate::models::Exon)
+    /// with the data of the [`GtfRecord`]
     pub fn add_to_exon(self, mut exon: Exon) -> Exon {
         exon.start = min(exon.start, self.start);
         exon.end = max(exon.end, self.end);
@@ -299,7 +319,32 @@ impl From<GtfRecord> for models::Exon {
     }
 }
 
-/// A builder for `GtfRecord`s, providing a cleaner API
+/// A builder for [`GtfRecord`]s, providing a cleaner API
+///
+/// # Examples
+///
+/// ```rust
+/// use atg::gtf::{Attributes, GtfFeature, GtfRecordBuilder};
+/// use atg::models::{Frame, Strand};
+/// use std::str::FromStr;
+/// 
+/// let record = GtfRecordBuilder::new()
+///     .chrom("chr1")
+///     .source("local source")
+///     .feature(GtfFeature::CDS)
+///     .start(1)
+///     .end(3)
+///     .score(1.4)
+///     // alternative:
+///     // score_option(Some(1.4))
+///     .strand(Strand::Plus)
+///     .frame_offset(Frame::Zero)
+///     .attributes(Attributes::from_str("gene_id Foo; transcript_id Bar").unwrap())
+///     .build()
+///     .unwrap();
+///
+/// assert_eq!(record.chrom(), "chr1");
+/// ```
 pub struct GtfRecordBuilder<'a> {
     chrom: Option<&'a str>,
     source: Option<&'a str>,
@@ -355,10 +400,20 @@ impl<'a> GtfRecordBuilder<'a> {
         self.end = Some(end);
         self
     }
+
+    /// Adds Some(score) to the GtfRecord
+    ///
+    /// Use this method if you are certain that you do have an actual
+    /// score value. If you are unsure, use [`score_option`](GtfRecordBuilder::score_option) instead.
     pub fn score(&mut self, score: f32) -> &mut Self {
         self.score = Some(score);
         self
     }
+
+    /// Adds an Option to the score of the GtfRecord
+    ///
+    /// Use this method if you are unsure if you have an actual
+    /// score value or `None` in your input data
     pub fn score_option(&mut self, score: Option<f32>) -> &mut Self {
         self.score = score;
         self
@@ -380,7 +435,7 @@ impl<'a> GtfRecordBuilder<'a> {
         self
     }
 
-    /// Builds and returns a `Transcript`
+    /// Builds and returns a [`Transcript`](crate::models::Transcript)
     pub fn build(&mut self) -> Result<GtfRecord, String> {
         let r = GtfRecord {
             chrom: match self.chrom {

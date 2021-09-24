@@ -10,13 +10,57 @@ use crate::utils::errors::ParseGtfError;
 use crate::models::{Transcript, TranscriptRead, Transcripts};
 use crate::utils::errors::ReadWriteError;
 
-/// Reads and parses a GTF file from a `BufReader`
+/// Parses GTF data and creates `Transcript`s.
+///
+/// GTF data can be read from a file, stdin or remote sources
+/// All sources are supported that provide a `std::io::Read` implementation.
+///
+/// # Examples
+///
+/// ```rust
+/// use atg::gtf::Reader;
+/// use atg::models::TranscriptRead;
+///
+/// // create a reader from the tests GTF file
+/// let reader = Reader::from_file("tests/data/tests.gtf");
+/// assert_eq!(reader.is_ok(), true);
+///
+/// // parse the GTF file
+/// let transcripts = reader
+///     .unwrap()
+///     .transcripts()
+///     .unwrap();
+///
+/// assert_eq!(transcripts.len(), 10);
+/// ```
 pub struct Reader<R> {
     inner: std::io::BufReader<R>,
 }
 
 impl Reader<File> {
     /// Creates a Reader instance that reads from a File
+    ///
+    /// Use this method when you want to read from a GTF file
+    /// on your local file system
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use atg::gtf::Reader;
+    /// use atg::models::TranscriptRead;
+    ///
+    /// // create a reader from the tests GTF file
+    /// let reader = Reader::from_file("tests/data/tests.gtf");
+    /// assert_eq!(reader.is_ok(), true);
+    ///
+    /// // parse the GTF file
+    /// let transcripts = reader
+    ///     .unwrap()
+    ///     .transcripts()
+    ///     .unwrap();
+    ///
+    /// assert_eq!(transcripts.len(), 10);
+    /// ```
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self, ReadWriteError> {
         match File::open(path.as_ref()) {
             Ok(file) => Ok(Self::new(file)),
@@ -26,12 +70,19 @@ impl Reader<File> {
 }
 
 impl<R: std::io::Read> Reader<R> {
+    /// creates a new Reader instance from any `std::io::Read` object
+    ///
+    /// Use this method when you want to read from stdin or from
+    /// a remote source, e.g. via HTTP
     pub fn new(reader: R) -> Self {
         Reader {
             inner: BufReader::new(reader),
         }
     }
 
+    /// Creates a new Reader instance with a known capcity
+    ///
+    /// Use this when you know the size of your GTF source
     pub fn with_capacity(capacity: usize, reader: R) -> Self {
         Reader {
             inner: BufReader::with_capacity(capacity, reader),
@@ -67,6 +118,25 @@ impl<R: std::io::Read> Reader<R> {
 
 impl<R: std::io::Read> TranscriptRead for Reader<R> {
     /// Reads in GTF data and returns the final list of `Transcripts`
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use atg::gtf::Reader;
+    /// use atg::models::TranscriptRead;
+    ///
+    /// // create a reader from the tests GTF file
+    /// let reader = Reader::from_file("tests/data/tests.gtf");
+    /// assert_eq!(reader.is_ok(), true);
+    ///
+    /// // parse the GTF file
+    /// let transcripts = reader
+    ///     .unwrap()
+    ///     .transcripts()
+    ///     .unwrap();
+    ///
+    /// assert_eq!(transcripts.len(), 10);
+    /// ```
     fn transcripts(&mut self) -> Result<Transcripts, ReadWriteError> {
         let mut transcript_hashmap: HashMap<String, GtfRecordsGroup> = HashMap::new();
         while let Some(line) = self.line() {

@@ -104,7 +104,9 @@ pub trait TranscriptWrite {
     }
 }
 
+/// Trait for parsing the input into `Transcripts`
 pub trait TranscriptRead {
+    /// Consumes the `Reader` and returns `Transcripts`
     fn transcripts(&mut self) -> Result<Transcripts, ReadWriteError>;
 }
 

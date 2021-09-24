@@ -3,6 +3,28 @@ use crate::utils::errors::ParseGtfError;
 
 use std::str::FromStr;
 
+/// Holds the extra GTF attributes
+///
+/// # Examples
+///
+/// ```rust
+/// use atg::gtf::Attributes;
+/// use std::str::FromStr;
+///
+/// let attr = Attributes::from_str("gene_id Foo; transcript_id Bar; something else");
+/// assert_eq!(attr.is_ok(), true);
+///
+/// let attr = attr.unwrap();
+///
+/// assert_eq!(attr.gene(), "Foo");
+/// assert_eq!(attr.transcript(), "Bar");
+///
+/// // create a vector with all attributes
+/// let attrs = attr.all();
+/// assert_eq!(attrs[0], ("gene_id", "Foo"));
+/// assert_eq!(attrs[1], ("transcript_id", "Bar"));
+/// assert_eq!(attrs[2], ("something", "else"));
+/// ```
 #[derive(Debug, PartialEq)]
 pub struct Attributes {
     transcript: String,
@@ -19,6 +41,22 @@ impl Attributes {
         &self.transcript
     }
 
+    /// Returns a vector of Tuples with all key => value pairs
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use atg::gtf::Attributes;
+    /// use std::str::FromStr;
+    /// let attr = Attributes::from_str("gene_id Foo; transcript_id Bar; something else")
+    /// .unwrap();
+    ///
+    /// let attrs = attr.all();
+    /// 
+    /// assert_eq!(attrs[0], ("gene_id", "Foo"));
+    /// assert_eq!(attrs[1], ("transcript_id", "Bar"));
+    /// assert_eq!(attrs[2], ("something", "else"));
+    /// ```
     pub fn all(&self) -> Vec<(&str, &str)> {
         let mut res = Vec::with_capacity(self.others.len() + 2);
         res.push(("gene_id", self.gene()));
@@ -29,6 +67,8 @@ impl Attributes {
         res
     }
 
+    /// Builds an [`Attributes`] from an existing
+    /// [`Transcript`](crate::models::Transcript)
     pub fn from_transcript(transcript: &Transcript) -> Self {
         let name = transcript.name().to_string();
         let gene = transcript.gene().to_string();
@@ -43,6 +83,19 @@ impl Attributes {
 impl FromStr for Attributes {
     type Err = ParseGtfError;
 
+    /// Builds an [`Attributes`] from a string
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use atg::gtf::Attributes;
+    /// use std::str::FromStr;
+    /// let attr = Attributes::from_str("gene_id Foo; transcript_id Bar; something else")
+    /// .unwrap();
+    ///
+    /// assert_eq!(attr.gene(), "Foo");
+    /// assert_eq!(attr.transcript(), "Bar");
+    /// ```
     fn from_str(s: &str) -> Result<Self, ParseGtfError> {
         let mut gene: Option<String> = None;
         let mut transcript: Option<String> = None;

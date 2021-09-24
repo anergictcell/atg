@@ -11,17 +11,22 @@ use crate::models::{CdsStat, Exon, Frame, Strand, Transcript};
 use crate::utils::errors::{ParseGtfError, ReadWriteError};
 use crate::utils::subtract;
 
-/// Writes GTF records into a `BufWriter`
+/// Writes `Transcript`s into a `BufWriter`
+///
+/// # Examples
 ///
 /// ```rust
 /// use std::io;
 /// use atg::models::helper_functions;
 /// use atg::gtf::Writer;
 /// use atg::models::TranscriptWrite;
+///
 /// let transcripts = vec![helper_functions::standard_transcript()];
+///
 /// let output = Vec::new(); // substitute this with proper IO (io::stdout())
 /// let mut writer = Writer::new(output);
 /// writer.write_transcript_vec(&transcripts);
+///
 /// let written_output = String::from_utf8(writer.into_inner().unwrap()).unwrap();
 /// assert_eq!(written_output.starts_with("chr1\t"), true);
 /// ```
@@ -31,6 +36,7 @@ pub struct Writer<W: std::io::Write> {
 }
 
 impl Writer<File> {
+    /// Creates a new Writer to write into a file
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self, ReadWriteError> {
         match File::create(path.as_ref()) {
             Ok(file) => Ok(Self::new(file)),
@@ -40,6 +46,10 @@ impl Writer<File> {
 }
 
 impl<W: std::io::Write> Writer<W> {
+    /// Creates a new generic Writer for any `std::io::Read`` object
+    ///
+    /// Use this method when you want to write to stdout or
+    /// a remote source, e.g. via HTTP
     pub fn new(writer: W) -> Self {
         Writer {
             inner: BufWriter::new(writer),
@@ -54,6 +64,10 @@ impl<W: std::io::Write> Writer<W> {
         }
     }
 
+    /// Changes the source column of the output GTF data
+    ///
+    /// GTF contains a source column. Use this method to
+    /// globally set the source manually
     pub fn set_source(&mut self, source: &str) {
         self.gtf_source = source.to_string();
     }
@@ -78,11 +92,23 @@ impl<W: std::io::Write> Writer<W> {
 }
 
 impl<W: std::io::Write> TranscriptWrite for Writer<W> {
+    /// Writes a single transcript formatted as GTF with an extra newline
+    ///
+    /// One record can consist of multiple rows
+    ///
+    /// This method adds an extra newline at the end of the last GTF row
+    /// to allow writing multiple transcripts continuosly
     fn writeln_single_transcript(&mut self, transcript: &Transcript) -> Result<(), std::io::Error> {
         self.write_single_transcript(transcript)?;
         self.inner.write_all("\n".as_bytes())
     }
 
+    /// Writes a single transcript formatted as GTF
+    ///
+    /// One record can consist of multiple rows
+    ///
+    /// Consider [`writeln_single_transcript`](Writer::writeln_single_transcript)
+    /// to ensure that an extra newline is added to the output
     fn write_single_transcript(&mut self, transcript: &Transcript) -> Result<(), std::io::Error> {
         let mut lines: Vec<String> = vec![];
         for gtf_record in compose_lines(transcript, &self.gtf_source) {
