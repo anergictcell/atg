@@ -1,37 +1,38 @@
-// I could not find a proper documentation for the refGene format anywhere
-// There are various trustworthy and untrustworthy defintions
-// I mainly relied on
-// https://www.biostars.org/p/18480/
-// and the tip to "Describe table schema" on http://genome.ucsc.edu/cgi-bin/hgTables
-//
-//  Schema for NCBI RefSeq - RefSeq genes from NCBI
-//     Database: hg38    Primary Table: ncbiRefSeq    Row Count: 173,266   Data last updated: 2021-05-28
-// Format description: A gene prediction with some additional info.
-// field   example SQL type    info    description
-// bin     585 smallint(5) unsigned    range   Indexing field to speed chromosome range queries.
-// name    NR_046018.2 varchar(255)    values  Name of gene (usually transcript_id from GTF)
-// chrom   chr1    varchar(255)    values  Reference sequence chromosome or scaffold
-// strand  +   char(1)     values  + or - for strand
-// txStart     11873   int(10) unsigned    range   Transcription start position (or end position for minus strand item)
-// txEnd   14409   int(10) unsigned    range   Transcription end position (or start position for minus strand item)
-// cdsStart    14409   int(10) unsigned    range   Coding region start (or end position for minus strand item)
-// cdsEnd  14409   int(10) unsigned    range   Coding region end (or start position for minus strand item)
-// exonCount   3   int(10) unsigned    range   Number of exons
-// exonStarts  11873,12612,13220,  longblob        Exon start positions (or end positions for minus strand item)
-// exonEnds    12227,12721,14409,  longblob        Exon end positions (or start positions for minus strand item)
-// score   0   int(11)     range   score
-// name2   DDX11L1 varchar(255)    values  Alternate name (e.g. gene_id from GTF)
-// cdsStartStat    none    enum('none', 'unk', 'incmpl', 'cmpl')   values  Status of CDS start annotation (none, unknown, incomplete, or complete)
-// cdsEndStat  none    enum('none', 'unk', 'incmpl', 'cmpl')   values  Status of CDS end annotation (none, unknown, incomplete, or complete)
-// exonFrames  -1,-1,-1,   longblob        Exon frame {0,1,2}, or -1 if no frame for exon
+//! Convert from/to RefGene
+//!
+//! The RefGene section is written for the RefGene spec as much as possible.
+//!
+//! I could not find a proper documentation for the refGene format anywhere
+//! There are various trustworthy and untrustworthy defintions
+//! I mainly relied on this 
+//! [BioStars](https://www.biostars.org/p/18480/)
+//! tip to "Describe table schema" on [UCSC Genome](http://genome.ucsc.edu/cgi-bin/hgTables)
+//!
+//!  # Schema for NCBI RefSeq - RefSeq genes from NCBI
+//! | Column | Type | Example | Description |
+//! | --- | --- | --- | --- |
+//! | bin | int |  585 | Indexing field to speed chromosome range queries. |
+//! | name | str |  NR_046018.2 | Name of gene (usually transcript_id from GTF) |
+//! | chrom | str | chr1 | Reference sequence chromosome or scaffold |
+//! | strand | enum("+", "-") | + | + or - for strand |
+//! | txStart | int | 11873 | Transcription start position (or end position for minus strand item) |
+//! | txEnd | int | 14409 | Transcription end position (or start position for minus strand item) |
+//! | cdsStart | int | 14409 | Coding region start (or end position for minus strand item) |
+//! | cdsEnd | int | 4409 | Coding region end (or start position for minus strand item) |
+//! | exonCount | int | 3 | Number of exons |
+//! | exonStarts | List of int | 1873,12612,13220, | Exon start positions (or end positions for minus strand item) (with trailing comma) |
+//! | exonEnds | List of int | 12227,12721,14409, | Exon end positions (or start positions for minus strand item) (with trailing comma) |
+//! | score | int | 0 | The score field indicates a degree of confidence in the feature's existence and coordinates |
+//! | name2 | str | DDX11L1 | Alternate name (e.g. gene_id from GTF) |
+//! | cdsStartStat | enum("none", "unk", "incmpl", "cmpl") | compl | Status of CDS start annotation (none, unknown, incomplete, or complete) |
+//! | cdsEndStat | enum("none", "unk", "incmpl", "cmpl") | compl | Status of CDS end annotation (none, unknown, incomplete, or complete) |
+//! | exonFrames | List of enum(-1, 0, 1, 2) | -1,0,2,1 | Exon frame {0,1,2}, or -1 if no frame for exon |
 
 mod constants;
 mod reader;
-pub mod utils;
 mod writer;
 
 pub use crate::refgene::reader::Reader;
-// pub use crate::refgene::utils::ParseRefGeneError;
 pub use crate::refgene::writer::Writer;
 
 #[cfg(test)]

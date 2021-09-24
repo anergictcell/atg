@@ -10,7 +10,7 @@ use crate::utils::errors::ParseGtfError;
 use crate::models::{Transcript, TranscriptRead, Transcripts};
 use crate::utils::errors::ReadWriteError;
 
-/// Parses GTF data and creates `Transcript`s.
+/// Parses GTF data and creates [`Transcript`]s.
 ///
 /// GTF data can be read from a file, stdin or remote sources
 /// All sources are supported that provide a `std::io::Read` implementation.

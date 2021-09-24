@@ -6,7 +6,7 @@ use std::str::FromStr;
 
 use crate::models::Transcripts;
 use crate::refgene::constants::*;
-use crate::refgene::utils::ParseRefGeneError;
+use crate::utils::errors::ParseRefGeneError;
 
 use crate::models;
 use crate::models::{CdsStat, Exon, Frame, Strand, TranscriptBuilder};
@@ -14,13 +14,57 @@ use crate::models::{Transcript, TranscriptRead};
 use crate::utils::errors::ReadWriteError;
 use crate::utils::exon_cds_overlap;
 
+/// Parses RefGene data and creates [`Transcript`]s.
+///
+/// RefGene data can be read from a file, stdin or remote sources
+/// All sources are supported that provide a `std::io::Read` implementation.
+///
+/// # Examples
+///
+/// ```rust
+/// use atg::refgene::Reader;
+/// use atg::models::TranscriptRead;
+///
+/// // create a reader from the tests RefGene file
+/// let reader = Reader::from_file("tests/data/test.refgene");
+/// assert_eq!(reader.is_ok(), true);
+///
+/// // parse the RefGene file
+/// let transcripts = reader
+///     .unwrap()
+///     .transcripts()
+///     .unwrap();
+///
+/// assert_eq!(transcripts.len(), 10);
+/// ```
 pub struct Reader<R> {
-    inner: std::io::BufReader<R>,
-    threads: u8,
+    inner: std::io::BufReader<R>
 }
 
 impl Reader<File> {
     /// Creates a Reader instance that reads from a File
+    ///
+    /// Use this method when you want to read from a RefGene file
+    /// on your local file system
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use atg::refgene::Reader;
+    /// use atg::models::TranscriptRead;
+    ///
+    /// // create a reader from the tests RefGene file
+    /// let reader = Reader::from_file("tests/data/test.refgene");
+    /// assert_eq!(reader.is_ok(), true);
+    ///
+    /// // parse the RefGene file
+    /// let transcripts = reader
+    ///     .unwrap()
+    ///     .transcripts()
+    ///     .unwrap();
+    ///
+    /// assert_eq!(transcripts.len(), 10);
+    /// ```
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self, ReadWriteError> {
         match File::open(path.as_ref()) {
             Ok(file) => Ok(Self::new(file)),
@@ -30,24 +74,25 @@ impl Reader<File> {
 }
 
 impl<R: std::io::Read> Reader<R> {
+    /// creates a new Reader instance from any `std::io::Read` object
+    ///
+    /// Use this method when you want to read from stdin or from
+    /// a remote source, e.g. via HTTP
     pub fn new(reader: R) -> Self {
         Reader {
-            inner: BufReader::new(reader),
-            threads: 1,
+            inner: BufReader::new(reader)
         }
     }
 
+    /// Creates a new Reader instance with a known capcity
+    ///
+    /// Use this when you know the size of your RefGene source
     pub fn with_capacity(capacity: usize, reader: R) -> Self {
         Reader {
-            inner: BufReader::with_capacity(capacity, reader),
-            threads: 1,
+            inner: BufReader::with_capacity(capacity, reader)
         }
     }
 
-    pub fn threads(mut self, threads: u8) -> Reader<R> {
-        self.threads = threads;
-        self
-    }
 
     /// Returns one line of a RefGene file as `Transcript`
     ///
@@ -78,6 +123,26 @@ impl<R: std::io::Read> Reader<R> {
 }
 
 impl<R: std::io::Read> TranscriptRead for Reader<R> {
+    /// Reads in RefGene data and returns the final list of `Transcripts`
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use atg::refgene::Reader;
+    /// use atg::models::TranscriptRead;
+    ///
+    /// // create a reader from the tests RefGene file
+    /// let reader = Reader::from_file("tests/data/test.refgene");
+    /// assert_eq!(reader.is_ok(), true);
+    ///
+    /// // parse the RefGene file
+    /// let transcripts = reader
+    ///     .unwrap()
+    ///     .transcripts()
+    ///     .unwrap();
+    ///
+    /// assert_eq!(transcripts.len(), 10);
+    /// ```
     fn transcripts(&mut self) -> Result<Transcripts, ReadWriteError> {
         let mut res = Transcripts::new();
         while let Some(line) = self.line() {
@@ -89,22 +154,6 @@ impl<R: std::io::Read> TranscriptRead for Reader<R> {
 
         Ok(res)
     }
-
-    // pub fn read_parallel(&mut self) -> Result<usize, ParseRefGeneError> {
-    //     let transcripts: Vec<Transcript> = self
-    //         .content
-    //         .par_lines()
-    //         .map(|line| match self.parse_line(line) {
-    //             Ok(transcript) => transcript,
-    //             Err(x) => {
-    //                 eprintln!("{}", x);
-    //                 process::exit(1);
-    //             }
-    //         })
-    //         .collect();
-
-    //     Ok(transcripts.len())
-    // }
 }
 
 impl<R: std::io::Read> IntoIterator for Reader<R> {

@@ -11,7 +11,7 @@ use crate::models::{CdsStat, Exon, Frame, Strand, Transcript};
 use crate::utils::errors::{ParseGtfError, ReadWriteError};
 use crate::utils::subtract;
 
-/// Writes `Transcript`s into a `BufWriter`
+/// Writes [`Transcript`]s into a `BufWriter`
 ///
 /// # Examples
 ///

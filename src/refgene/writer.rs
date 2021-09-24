@@ -4,9 +4,28 @@ use std::path::Path;
 
 use crate::models::{Transcript, TranscriptWrite};
 use crate::refgene::constants::*;
-use crate::refgene::utils::ParseRefGeneError;
+use crate::utils::errors::ParseRefGeneError;
 use crate::utils::errors::ReadWriteError;
 
+/// Writes [`Transcript`]s into a `BufWriter`
+///
+/// # Examples
+///
+/// ```rust
+/// use std::io;
+/// use atg::models::helper_functions;
+/// use atg::refgene::Writer;
+/// use atg::models::TranscriptWrite;
+///
+/// let transcripts = vec![helper_functions::standard_transcript()];
+///
+/// let output = Vec::new(); // substitute this with proper IO (io::stdout())
+/// let mut writer = Writer::new(output);
+/// writer.write_transcript_vec(&transcripts);
+///
+/// let written_output = String::from_utf8(writer.into_inner().unwrap()).unwrap();
+/// assert_eq!(written_output.starts_with("0\tTest-Transcript\tchr1\t"), true);
+/// ```
 pub struct Writer<W: std::io::Write> {
     inner: BufWriter<W>,
 }
@@ -21,6 +40,10 @@ impl Writer<File> {
 }
 
 impl<W: std::io::Write> Writer<W> {
+    /// Creates a new generic Writer for any `std::io::Read`` object
+    ///
+    /// Use this method when you want to write to stdout or
+    /// a remote source, e.g. via HTTP
     pub fn new(writer: W) -> Self {
         Writer {
             inner: BufWriter::new(writer),
@@ -49,15 +72,22 @@ impl<W: std::io::Write> Writer<W> {
 }
 
 impl<W: std::io::Write> TranscriptWrite for Writer<W> {
+    /// Writes a single transcript formatted as RefGene with an extra newline
+    ///
+    /// This method adds an extra newline at the end of the row
+    /// to allow writing multiple transcripts continuosly
     fn writeln_single_transcript(&mut self, transcript: &Transcript) -> Result<(), std::io::Error> {
         self.write_single_transcript(transcript)?;
         self.inner.write_all("\n".as_bytes())
     }
 
+    /// Writes a single transcript formatted as RefGene
+    ///
+    /// Consider [`writeln_single_transcript`](Writer::writeln_single_transcript)
+    /// to ensure that an extra newline is added to the output
     fn write_single_transcript(&mut self, transcript: &Transcript) -> Result<(), std::io::Error> {
         // RefGene is a tab-delimited format, each line has 16 columns
         // Defines a Vector that contains the strings for each column
-        //
         let mut columns: Vec<String> = vec!["".to_string(); N_REFGENE_COLUMNS];
 
         columns[TRANSCRIPT_COL] = transcript.name().to_string();
