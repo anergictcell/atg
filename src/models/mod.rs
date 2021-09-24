@@ -21,7 +21,9 @@ pub mod helper_functions {
     /// Generates a transcript to be used for tests.
     /// It contains 5 exons, 3 of which are coding
     ///
+    /// ```text
     /// Nucleotide positions:
+    ///
     ///    1....   2....   3....   4....   5....
     ///    12345   12345   12345   12345   12345
     /// ---=====---===XX---XXXXX---XXXX=---=====---
@@ -29,6 +31,7 @@ pub mod helper_functions {
     /// ---  Intron
     /// ===  Exon (non-coding)
     /// XXX  CDS
+    /// ```
     pub fn standard_transcript() -> models::Transcript {
         let mut transcript = models::TranscriptBuilder::new()
             .name("Test-Transcript")

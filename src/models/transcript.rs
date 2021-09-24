@@ -156,6 +156,7 @@ impl Transcript {
     /// and thus the coordinates of it can't be easily calculated
     /// Taking into account the following options, by splitting the
     /// start codon into multiple exons
+    /// ```text
     ///       1....   2....   3....   4....   5....
     ///       12345   12345   12345   12345   12345
     ///    ---=====---===XX---XXXXX---XXXX=---=====---
@@ -165,6 +166,7 @@ impl Transcript {
     /// 4. ---=====---===AT---GXXXX---XXXX=---=====--- >> split
     /// 5. ---=====---====A---TGXXX---XXXX=---=====--- >> split
     /// 6. ---=====---====A-----T-----GXXX=---=====--- >> not really possible, but for the sake of it, let's consider it as well
+    /// ```
     pub fn start_codon(&self) -> Vec<(u32, u32, Frame)> {
         if !self.is_coding() {
             return vec![];
@@ -192,6 +194,7 @@ impl Transcript {
     /// and thus the coordinates of it can't be easily calculated
     /// Taking into account the following options, by splitting the
     /// stop codon into multiple exons
+    /// ```text
     ///       1....   2....   3....   4....   5....
     ///       12345   12345   12345   12345   12345
     ///    ---=====---===XX---XXXXX---XXXX=---=====---
@@ -201,6 +204,7 @@ impl Transcript {
     /// 4. ---=====---===XX---XXXXU---AGXX=---=====--- >> split
     /// 5. ---=====---====X---XXXUA---GXXX=---=====--- >> split
     /// 6. ---=====---===XU-----A-----G====---=====--- >> not really possible, but for the sake of it, let's consider it as well
+    /// ```
     pub fn stop_codon(&self) -> Vec<(u32, u32, Frame)> {
         if !self.is_coding() {
             return vec![];
@@ -215,11 +219,6 @@ impl Transcript {
         } else {
             vec![]
         }
-        // if codon.is_ok() {
-        //     codon.unwrap().to_tuple()
-        // } else {
-        //     vec![]
-        // }
     }
 }
 

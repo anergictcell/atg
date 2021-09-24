@@ -31,10 +31,12 @@ impl Codon {
     /// Returns one codon from the provided transcript, starting at the given start position
     ///
     /// If the transcript lies on the Minus strand, the codon will be left of start position
+    /// ```text
     /// e.g.:   123456789
     ///         ----x---- ==> start = 5
     /// Plus:   ----XXX   ==> 5-7
     /// Minus:  --XXX---- ==> 3-5
+    /// ```
     ///
     /// ```rust
     /// use atg;

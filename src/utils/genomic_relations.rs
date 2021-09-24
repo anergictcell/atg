@@ -33,10 +33,11 @@ impl fmt::Display for GenomicRelation {
 
 /// Returns the intersection coordinates between two genomic features
 ///
-///
+/// ```text
 /// a:       --AAA-- --AAA-- --AAA-- --AAA-- --AAA-- --AAA-- --AAA--
 /// b:       BB----- -----BB -BBBBB- --BBB-- ---B--- -BB---- ----BB-
 /// Returns: ------- ------- --XXX-- --XXX-- ---X--- --X---- ----X--
+/// ```
 ///
 /// ```rust
 /// use atg::utils::intersect;
@@ -56,10 +57,11 @@ pub fn intersect(a: (&u32, &u32), b: (&u32, &u32)) -> Option<(u32, u32)> {
 
 /// Returns the union coordinates between two overlapping genomic features
 ///
-///
+/// ```text
 /// a:       --AAA-- --AAA-- --AAA-- --AAA-- --AAA-- --AAA-- --AAA--
 /// b:       BB----- -----BB -BBBBB- --BBB-- ---B--- -BB---- ----BB-
 /// Returns: ------- ------- -XXXXX- --XXX-- --XXX-- -XXXX-- --XXX--
+/// ```
 ///
 /// ```rust
 /// use atg::utils::union;
@@ -80,10 +82,11 @@ pub fn union(a: (&u32, &u32), b: (&u32, &u32)) -> Option<(u32, u32)> {
 /// Returns genomic features that intersect with a, but not with b
 /// If feature b overlaps a, returns None
 ///
-///
+/// ```text
 /// a:       --AAA-- --AAA-- --AAA-- --AAA-- --AAA-- --AAA-- --AAA--
 /// b:       BB----- -----BB -BBBBB- --BBB-- ---B--- -BB---- ----BB-
 /// Returns: --XXX-- --XXX-- ------- ------- --X-X-- ---XX-- --XX---
+/// ```
 ///
 /// ```rust
 /// use atg::utils::subtract;
@@ -106,7 +109,7 @@ pub fn subtract(a: (&u32, &u32), b: (&u32, &u32)) -> Vec<(u32, u32)> {
 
 /// Returns the genomic relation of two features to each other
 ///
-///
+/// ```text
 /// --AAA--
 /// BB-----
 /// Downstream
@@ -134,6 +137,7 @@ pub fn subtract(a: (&u32, &u32), b: (&u32, &u32)) -> Vec<(u32, u32)> {
 /// --AAA--
 /// ----BB-
 /// Left
+/// ```
 ///
 /// ```rust
 /// use atg::utils::relation;
