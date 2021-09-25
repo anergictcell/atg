@@ -2,7 +2,7 @@ use core::convert::TryFrom;
 use std::fmt;
 
 use crate::gtf::{GtfFeature, GtfRecord};
-use crate::models::{CdsStat, Exon, Transcript, TranscriptBuilder};
+use crate::models::{CdsStat, Exon, Strand, Transcript, TranscriptBuilder};
 use crate::utils::errors::ParseGtfError;
 
 /// Groups all [`GtfRecord`] object that belong to one Transcript
@@ -29,8 +29,24 @@ impl GtfRecordsGroup {
         self.exons.push(exon)
     }
 
-    fn exons(&self) -> &Vec<GtfRecord> {
-        &self.exons
+    pub fn transcript(&self) -> &str {
+        &self.transcript
+    }
+
+    pub fn gene(&self) -> &str {
+        self.exons[0].gene()
+    }
+
+    pub fn chrom(&self) -> &str {
+        self.exons[0].chrom()
+    }
+
+    pub fn strand(&self) -> &Strand {
+        self.exons[0].strand()
+    }
+
+    pub fn score(&self) -> &Option<f32> {
+        self.exons[0].score()
     }
 
     fn prepare(&mut self) {
@@ -64,7 +80,7 @@ impl GtfRecordsGroup {
     /// Returns all exons of the transcript as `Vector`
     ///
     /// All rows of the GFT file are grouped by genomic location
-    pub fn to_exons(&mut self) -> Vec<Exon> {
+    pub fn exons(&mut self) -> Vec<Exon> {
         if !self.sorted {
             self.prepare();
         }
@@ -130,17 +146,17 @@ impl TryFrom<GtfRecordsGroup> for Transcript {
             });
         }
         let transcript = TranscriptBuilder::new()
-            .name(gtf_transcript.exons()[0].transcript())
-            .gene(gtf_transcript.exons()[0].gene())
-            .chrom(gtf_transcript.exons()[0].chrom())
-            .strand(*gtf_transcript.exons()[0].strand())
+            .name(gtf_transcript.transcript())
+            .gene(gtf_transcript.gene())
+            .chrom(gtf_transcript.chrom())
+            .strand(*gtf_transcript.strand())
             .cds_start_codon_stat(gtf_transcript.cds_start_stat())?
             .cds_stop_codon_stat(gtf_transcript.cds_end_stat())?
-            .score(*gtf_transcript.exons()[0].score())
+            .score(*gtf_transcript.score())
             .build();
         match transcript {
             Ok(mut x) => {
-                x.append_exons(&mut gtf_transcript.to_exons());
+                x.append_exons(&mut gtf_transcript.exons());
                 Ok(x)
             }
             _ => Err(ParseGtfError {
