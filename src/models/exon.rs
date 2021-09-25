@@ -2,19 +2,52 @@ use std::fmt;
 
 use crate::models::Frame;
 
+/// Represents a genomic exon.
+///
+/// Exons can be coding and non-coding.
+/// Coding exons have CDS start and end position and a [frame-offset](crate::models::Frame).
+///
+/// ```rust
+/// use atg::models::{Exon, Frame};
+///
+/// let start = 1;
+/// let end = 10;
+/// let non_coding_exon = Exon::new(start, end, None, None, Frame::None);
+///
+/// assert_eq!(non_coding_exon.is_coding(), false);
+/// 
+/// let coding_exon = Exon::new(start, end, Some(start), Some(end), Frame::Zero);
+///
+/// assert_eq!(coding_exon.is_coding(), true);
+/// ```
 #[derive(Debug, PartialEq, Eq)]
 pub struct Exon {
     // u32 max value is 4,294,967,295 => This is sufficient for every human chromosome.
     // If you are working with species with chromsomes with more than 4 Mb per chromosome
     // this library will not work
-    pub start: u32,
-    pub end: u32,
-    pub cds_start: Option<u32>,
-    pub cds_end: Option<u32>,
-    pub frame_offset: Frame,
+    start: u32,
+    end: u32,
+    cds_start: Option<u32>,
+    cds_end: Option<u32>,
+    frame_offset: Frame,
 }
 
 impl Exon {
+    /// create a new Exon
+    ///
+    /// ```rust
+    /// use atg::models::{Exon, Frame};
+    ///
+    /// let start = 1;
+    /// let end = 10;
+    /// let non_coding_exon = Exon::new(start, end, None, None, Frame::None);
+    ///
+    /// assert_eq!(non_coding_exon.is_coding(), false);
+    /// 
+    /// let coding_exon = Exon::new(start, end, Some(start), Some(end), Frame::Zero);
+    ///
+    /// assert_eq!(coding_exon.is_coding(), true);
+    /// ```
     pub fn new(
         start: u32,
         end: u32,
@@ -31,16 +64,57 @@ impl Exon {
         }
     }
 
+    /// Genomic start (leftmost) position of the exon
+    pub fn start(&self) -> u32 {
+        self.start
+    }
+
+    /// modify the [`start`](Exon::start)
+    pub fn start_mut(&mut self) -> &mut u32 {
+        &mut self.start
+    }
+
+    /// Genomic end (rightmost) position of the exon
     pub fn end(&self) -> u32 {
         self.end
     }
 
+    /// modify the [`end`](Exon::end)
+    pub fn end_mut(&mut self) -> &mut u32 {
+        &mut self.end
+    }
+
+    /// If the exon is coding, it contains the leftmost genomic
+    /// coding nucleotide position
     pub fn cds_start(&self) -> &Option<u32> {
         &self.cds_start
     }
 
+    /// modify the [`cds_start`](Exon::cds_start)
+    pub fn cds_start_mut(&mut self) -> &mut Option<u32> {
+        &mut self.cds_start
+    }
+
+    /// If the exon is coding, it contains the rightmost genomic
+    /// coding nucleotide position
     pub fn cds_end(&self) -> &Option<u32> {
         &self.cds_end
+    }
+
+    /// modify the [`cds_end`](Exon::cds_end)
+    pub fn cds_end_mut(&mut self) -> &mut Option<u32> {
+        &mut self.cds_end
+    }
+
+    /// If the exon is coding, the [frame offset](crate::models::Frame)
+    /// specifies the offset of the reading frame
+    pub fn frame_offset(&self) -> &Frame {
+        &self.frame_offset
+    }
+
+    /// modify the [frame offset](Exon::frame_offset)
+    pub fn frame_offset_mut(&mut self) -> &mut Frame {
+        &mut self.frame_offset
     }
 
     /// Returns true if the exon contains a coding sequence (CDS)
@@ -49,10 +123,13 @@ impl Exon {
     ///
     /// ```rust
     /// use atg::models::{Exon, Frame};
-    /// let mut a = Exon {start: 1, end: 2, cds_start: None, cds_end: None, frame_offset: Frame::None};
+    ///
+    /// let start = 1;
+    /// let end = 2;
+    /// let mut a = Exon::new(start, end, None, None, Frame::None);
     /// assert_eq!(a.is_coding(), false);
-    /// a.cds_start = Some(1);
-    /// a.cds_end = Some(2);
+    /// *a.cds_start_mut() = Some(1);
+    /// *a.cds_end_mut() = Some(2);
     /// assert_eq!(a.is_coding(), true);
     /// ```
     pub fn is_coding(&self) -> bool {

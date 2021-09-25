@@ -175,12 +175,12 @@ impl<'a> Composer<'a> {
                 // Add UTR where needed
 
                 // upstream UTR
-                if exon.start < self.transcript.cds_start().unwrap() {
+                if exon.start() < self.transcript.cds_start().unwrap() {
                     lines.push(self.utr(exon, true))
                 }
 
                 // downstream UTR
-                if exon.end > self.transcript.cds_end().unwrap() {
+                if exon.end() > self.transcript.cds_end().unwrap() {
                     lines.push(self.utr(exon, false));
                 }
             }
@@ -208,8 +208,8 @@ impl<'a> Composer<'a> {
             .chrom(self.transcript.chrom())
             .source(self.source)
             .feature(GtfFeature::Exon)
-            .start(exon.start)
-            .end(exon.end)
+            .start(exon.start())
+            .end(exon.end())
             .score_option(self.transcript.score())
             .strand(self.transcript.strand())
             .frame_offset(Frame::Dot)
@@ -225,7 +225,7 @@ impl<'a> Composer<'a> {
         let (start, end) = match self.transcript.cds_stop_codon_stat() {
             CdsStat::Complete => {
                 match subtract(
-                    (&exon.cds_start.unwrap(), &exon.cds_end.unwrap()),
+                    (&exon.cds_start().unwrap(), &exon.cds_end().unwrap()),
                     (stop_codon.0, stop_codon.1),
                 ) {
                     // Stop codon is not part of this CDS
@@ -240,7 +240,7 @@ impl<'a> Composer<'a> {
                     fragments => (fragments[0].0, fragments[0].1),
                 }
             }
-            _ => (exon.cds_start.unwrap(), exon.cds_end.unwrap()),
+            _ => (exon.cds_start().unwrap(), exon.cds_end().unwrap()),
         };
         Some(
             GtfRecordBuilder::new()
@@ -251,7 +251,7 @@ impl<'a> Composer<'a> {
                 .end(end)
                 .score_option(self.transcript.score())
                 .strand(self.transcript.strand())
-                .frame_offset(exon.frame_offset)
+                .frame_offset(*exon.frame_offset())
                 .attributes(Attributes::from_transcript(self.transcript))
                 .build()
                 .unwrap(),
@@ -312,17 +312,17 @@ impl<'a> Composer<'a> {
                 (false, Strand::Minus) => GtfFeature::UTR5,
                 _ => GtfFeature::UTR,
             })
-            .start(match (left, exon.cds_end) {
+            .start(match (left, exon.cds_end()) {
                 // UTR start will only be different from exon start
                 // when the UTR is on the right side and exon is partly coding
                 (false, Some(x)) => x + 1,
-                _ => exon.start,
+                _ => exon.start(),
             })
-            .end(match (left, exon.cds_start) {
+            .end(match (left, exon.cds_start()) {
                 // UTR end will only be different from exon end
                 // when the UTR is on the left side and exon is partly coding
                 (true, Some(x)) => x - 1,
-                _ => exon.end,
+                _ => exon.end(),
             })
             .score_option(self.transcript.score())
             .strand(self.transcript.strand())

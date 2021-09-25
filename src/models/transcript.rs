@@ -116,17 +116,17 @@ impl Transcript {
     }
 
     pub fn tx_start(&self) -> u32 {
-        self.exons[0].start
+        self.exons[0].start()
     }
 
     pub fn tx_end(&self) -> u32 {
-        self.exons[self.exons.len() - 1].end
+        self.exons[self.exons.len() - 1].end()
     }
 
     pub fn cds_start(&self) -> Option<u32> {
         for exon in &self.exons {
-            if let Some(x) = exon.cds_start {
-                return Some(x);
+            if let Some(x) = exon.cds_start() {
+                return Some(*x);
             };
         }
         None
@@ -134,8 +134,8 @@ impl Transcript {
 
     pub fn cds_end(&self) -> Option<u32> {
         for exon in self.exons.iter().rev() {
-            if let Some(x) = exon.cds_end {
-                return Some(x);
+            if let Some(x) = exon.cds_end() {
+                return Some(*x);
             };
         }
         None

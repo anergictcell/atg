@@ -1,3 +1,6 @@
+//! Holds the main data models and structs that are used in ATG
+//!
+
 mod codon;
 mod exon;
 mod frame;
@@ -49,41 +52,41 @@ pub mod helper_functions {
 
     fn exons() -> Vec<models::Exon> {
         vec![
-            models::Exon {
-                start: 11,
-                end: 15,
-                cds_start: None,
-                cds_end: None,
-                frame_offset: models::Frame::None,
-            },
-            models::Exon {
-                start: 21,
-                end: 25,
-                cds_start: Some(24),
-                cds_end: Some(25),
-                frame_offset: models::Frame::Zero,
-            },
-            models::Exon {
-                start: 31,
-                end: 35,
-                cds_start: Some(31),
-                cds_end: Some(35),
-                frame_offset: models::Frame::One,
-            },
-            models::Exon {
-                start: 41,
-                end: 45,
-                cds_start: Some(41),
-                cds_end: Some(44),
-                frame_offset: models::Frame::Two,
-            },
-            models::Exon {
-                start: 51,
-                end: 55,
-                cds_start: None,
-                cds_end: None,
-                frame_offset: models::Frame::None,
-            },
+            models::Exon::new(
+                11,
+                15,
+                None,
+                None,
+                models::Frame::None,
+            ),
+            models::Exon::new(
+                21,
+                25,
+                Some(24),
+                Some(25),
+                models::Frame::Zero,
+            ),
+            models::Exon::new(
+                31,
+                35,
+                Some(31),
+                Some(35),
+                models::Frame::One,
+            ),
+            models::Exon::new(
+                41,
+                45,
+                Some(41),
+                Some(44),
+                models::Frame::Two,
+            ),
+            models::Exon::new(
+                51,
+                55,
+                None,
+                None,
+                models::Frame::None,
+            ),
         ]
     }
 }
@@ -140,65 +143,65 @@ mod tests {
     #[test]
     fn test_exon_downstream_frame() {
         assert_eq!(
-            Exon {
-                start: 1,
-                end: 1,
-                cds_start: Some(1),
-                cds_end: Some(3),
-                frame_offset: Frame::Zero
-            }
+            Exon::new(
+                1,
+                1,
+                Some(1),
+                Some(3),
+                Frame::Zero
+            )
             .downstream_frame()
             .unwrap(),
             Frame::Zero
         );
 
         assert_eq!(
-            Exon {
-                start: 1,
-                end: 1,
-                cds_start: Some(1),
-                cds_end: Some(4),
-                frame_offset: Frame::Zero
-            }
+            Exon::new(
+                1,
+                1,
+                Some(1),
+                Some(4),
+                Frame::Zero
+            )
             .downstream_frame()
             .unwrap(),
             Frame::Two
         );
 
         assert_eq!(
-            Exon {
-                start: 1,
-                end: 1,
-                cds_start: Some(1),
-                cds_end: Some(5),
-                frame_offset: Frame::Zero
-            }
+            Exon::new(
+                1,
+                1,
+                Some(1),
+                Some(5),
+                Frame::Zero
+            )
             .downstream_frame()
             .unwrap(),
             Frame::One
         );
 
         assert_eq!(
-            Exon {
-                start: 1,
-                end: 1,
-                cds_start: Some(1),
-                cds_end: Some(6),
-                frame_offset: Frame::Zero
-            }
+            Exon::new(
+                1,
+                1,
+                Some(1),
+                Some(6),
+                Frame::Zero
+            )
             .downstream_frame()
             .unwrap(),
             Frame::Zero
         );
 
         assert_eq!(
-            Exon {
-                start: 1,
-                end: 1,
-                cds_start: Some(1),
-                cds_end: Some(3),
-                frame_offset: Frame::One
-            }
+            Exon::new(
+                1,
+                1,
+                Some(1),
+                Some(3),
+                Frame::One
+            )
             .downstream_frame()
             .unwrap(),
             Frame::One
@@ -206,13 +209,13 @@ mod tests {
 
         // XATG
         assert_eq!(
-            Exon {
-                start: 1,
-                end: 1,
-                cds_start: Some(1),
-                cds_end: Some(4),
-                frame_offset: Frame::One
-            }
+            Exon::new(
+                1,
+                1,
+                Some(1),
+                Some(4),
+                Frame::One
+            )
             .downstream_frame()
             .unwrap(),
             Frame::Zero
@@ -220,13 +223,13 @@ mod tests {
 
         // XATGX
         assert_eq!(
-            Exon {
-                start: 1,
-                end: 1,
-                cds_start: Some(1),
-                cds_end: Some(5),
-                frame_offset: Frame::One
-            }
+            Exon::new(
+                1,
+                1,
+                Some(1),
+                Some(5),
+                Frame::One
+            )
             .downstream_frame()
             .unwrap(),
             Frame::Two
@@ -234,13 +237,13 @@ mod tests {
 
         // XATGXX
         assert_eq!(
-            Exon {
-                start: 1,
-                end: 1,
-                cds_start: Some(1),
-                cds_end: Some(6),
-                frame_offset: Frame::One
-            }
+            Exon::new(
+                1,
+                1,
+                Some(1),
+                Some(6),
+                Frame::One
+            )
             .downstream_frame()
             .unwrap(),
             Frame::One
@@ -248,13 +251,13 @@ mod tests {
 
         // XXA
         assert_eq!(
-            Exon {
-                start: 1,
-                end: 1,
-                cds_start: Some(1),
-                cds_end: Some(3),
-                frame_offset: Frame::Two
-            }
+            Exon::new(
+                1,
+                1,
+                Some(1),
+                Some(3),
+                Frame::Two
+            )
             .downstream_frame()
             .unwrap(),
             Frame::Two
@@ -262,13 +265,13 @@ mod tests {
 
         // XXAT
         assert_eq!(
-            Exon {
-                start: 1,
-                end: 1,
-                cds_start: Some(1),
-                cds_end: Some(4),
-                frame_offset: Frame::Two
-            }
+            Exon::new(
+                1,
+                1,
+                Some(1),
+                Some(4),
+                Frame::Two
+            )
             .downstream_frame()
             .unwrap(),
             Frame::One
@@ -276,13 +279,13 @@ mod tests {
 
         // XXATG
         assert_eq!(
-            Exon {
-                start: 1,
-                end: 1,
-                cds_start: Some(1),
-                cds_end: Some(5),
-                frame_offset: Frame::Two
-            }
+            Exon::new(
+                1,
+                1,
+                Some(1),
+                Some(5),
+                Frame::Two
+            )
             .downstream_frame()
             .unwrap(),
             Frame::Zero
@@ -290,13 +293,13 @@ mod tests {
 
         // XXATGX
         assert_eq!(
-            Exon {
-                start: 1,
-                end: 1,
-                cds_start: Some(1),
-                cds_end: Some(6),
-                frame_offset: Frame::Two
-            }
+            Exon::new(
+                1,
+                1,
+                Some(1),
+                Some(6),
+                Frame::Two
+            )
             .downstream_frame()
             .unwrap(),
             Frame::Two
@@ -323,7 +326,7 @@ mod test_start_codon {
     #[test]
     fn case_1() {
         let mut transcript = standard_transcript();
-        transcript.exons_mut()[1].cds_start = Some(21);
+        *transcript.exons_mut()[1].cds_start_mut() = Some(21);
         let a = transcript.start_codon();
 
         assert_eq!(a.len(), 1);
@@ -334,7 +337,7 @@ mod test_start_codon {
     #[test]
     fn case_2() {
         let mut transcript = standard_transcript();
-        transcript.exons_mut()[1].cds_start = Some(22);
+        *transcript.exons_mut()[1].cds_start_mut() = Some(22);
         let a = transcript.start_codon();
 
         assert_eq!(a.len(), 1);
@@ -346,7 +349,7 @@ mod test_start_codon {
     #[test]
     fn case_3() {
         let mut transcript = standard_transcript();
-        transcript.exons_mut()[1].cds_start = Some(23);
+        *transcript.exons_mut()[1].cds_start_mut() = Some(23);
         let a = transcript.start_codon();
 
         assert_eq!(a.len(), 1);
@@ -357,7 +360,7 @@ mod test_start_codon {
     #[test]
     fn case_4() {
         let mut transcript = standard_transcript();
-        transcript.exons_mut()[1].cds_start = Some(24);
+        *transcript.exons_mut()[1].cds_start_mut() = Some(24);
         let a = transcript.start_codon();
 
         assert_eq!(a.len(), 2);
@@ -372,7 +375,7 @@ mod test_start_codon {
     #[test]
     fn case_5() {
         let mut transcript = standard_transcript();
-        transcript.exons_mut()[1].cds_start = Some(25);
+        *transcript.exons_mut()[1].cds_start_mut() = Some(25);
         let a = transcript.start_codon();
 
         assert_eq!(a.len(), 2);
@@ -387,9 +390,9 @@ mod test_start_codon {
     #[test]
     fn case_6() {
         let mut transcript = standard_transcript();
-        transcript.exons_mut()[1].cds_start = Some(25);
-        transcript.exons_mut()[2].cds_start = Some(33);
-        transcript.exons_mut()[2].cds_end = Some(33);
+        *transcript.exons_mut()[1].cds_start_mut() = Some(25);
+        *transcript.exons_mut()[2].cds_start_mut() = Some(33);
+        *transcript.exons_mut()[2].cds_end_mut() = Some(33);
         let a = transcript.start_codon();
 
         assert_eq!(a.len(), 3);
@@ -423,7 +426,7 @@ mod test_stop_codon {
     #[test]
     fn case_1() {
         let mut transcript = standard_transcript();
-        transcript.exons_mut()[3].cds_end = Some(45);
+        *transcript.exons_mut()[3].cds_end_mut() = Some(45);
         let a = transcript.stop_codon();
 
         assert_eq!(a.len(), 1);
@@ -435,7 +438,7 @@ mod test_stop_codon {
     #[test]
     fn case_2() {
         let mut transcript = standard_transcript();
-        transcript.exons_mut()[3].cds_end = Some(44);
+        *transcript.exons_mut()[3].cds_end_mut() = Some(44);
         let a = transcript.stop_codon();
 
         assert_eq!(a.len(), 1);
@@ -446,7 +449,7 @@ mod test_stop_codon {
     #[test]
     fn case_3() {
         let mut transcript = standard_transcript();
-        transcript.exons_mut()[3].cds_end = Some(43);
+        *transcript.exons_mut()[3].cds_end_mut() = Some(43);
         let a = transcript.stop_codon();
 
         assert_eq!(a.len(), 1);
@@ -457,7 +460,7 @@ mod test_stop_codon {
     #[test]
     fn case_4() {
         let mut transcript = standard_transcript();
-        transcript.exons_mut()[3].cds_end = Some(42);
+        *transcript.exons_mut()[3].cds_end_mut() = Some(42);
         let a = transcript.stop_codon();
 
         assert_eq!(a.len(), 2);
@@ -473,7 +476,7 @@ mod test_stop_codon {
     #[test]
     fn case_5() {
         let mut transcript = standard_transcript();
-        transcript.exons_mut()[3].cds_end = Some(41);
+        *transcript.exons_mut()[3].cds_end_mut() = Some(41);
         let a = transcript.stop_codon();
 
         assert_eq!(a.len(), 2);
@@ -489,9 +492,9 @@ mod test_stop_codon {
     #[test]
     fn case_6() {
         let mut transcript = standard_transcript();
-        transcript.exons_mut()[2].cds_start = Some(33);
-        transcript.exons_mut()[2].cds_end = Some(33);
-        transcript.exons_mut()[3].cds_end = Some(41);
+        *transcript.exons_mut()[2].cds_start_mut() = Some(33);
+        *transcript.exons_mut()[2].cds_end_mut() = Some(33);
+        *transcript.exons_mut()[3].cds_end_mut() = Some(41);
         let a = transcript.stop_codon();
 
         assert_eq!(a.len(), 3);

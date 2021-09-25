@@ -87,25 +87,25 @@ mod tests {
 
         assert_eq!(transcript.exons().len(), 4);
 
-        assert_eq!(transcript.exons()[0].start, 84964006);
-        assert_eq!(transcript.exons()[0].end, 84964231);
-        assert_eq!(transcript.exons()[0].cds_start, None);
-        assert_eq!(transcript.exons()[0].cds_end, None);
+        assert_eq!(transcript.exons()[0].start(), 84964006);
+        assert_eq!(transcript.exons()[0].end(), 84964231);
+        assert_eq!(*transcript.exons()[0].cds_start(), None);
+        assert_eq!(*transcript.exons()[0].cds_end(), None);
 
-        assert_eq!(transcript.exons()[1].start, 84967509);
-        assert_eq!(transcript.exons()[1].end, 84967653);
-        assert_eq!(transcript.exons()[1].cds_start, Some(84967528));
-        assert_eq!(transcript.exons()[1].cds_end, Some(84967653));
+        assert_eq!(transcript.exons()[1].start(), 84967509);
+        assert_eq!(transcript.exons()[1].end(), 84967653);
+        assert_eq!(*transcript.exons()[1].cds_start(), Some(84967528));
+        assert_eq!(*transcript.exons()[1].cds_end(), Some(84967653));
 
-        assert_eq!(transcript.exons()[2].start, 84971694);
-        assert_eq!(transcript.exons()[2].end, 84971984);
-        assert_eq!(transcript.exons()[2].cds_start, Some(84971694));
-        assert_eq!(transcript.exons()[2].cds_end, Some(84971774));
+        assert_eq!(transcript.exons()[2].start(), 84971694);
+        assert_eq!(transcript.exons()[2].end(), 84971984);
+        assert_eq!(*transcript.exons()[2].cds_start(), Some(84971694));
+        assert_eq!(*transcript.exons()[2].cds_end(), Some(84971774));
 
-        assert_eq!(transcript.exons()[3].start, 84972119);
-        assert_eq!(transcript.exons()[3].end, 84972262);
-        assert_eq!(transcript.exons()[3].cds_start, None);
-        assert_eq!(transcript.exons()[3].cds_end, None);
+        assert_eq!(transcript.exons()[3].start(), 84972119);
+        assert_eq!(transcript.exons()[3].end(), 84972262);
+        assert_eq!(*transcript.exons()[3].cds_start(), None);
+        assert_eq!(*transcript.exons()[3].cds_end(), None);
     }
 
     #[test]

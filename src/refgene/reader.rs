@@ -343,20 +343,20 @@ mod tests {
 
         assert_eq!(exons.len(), 3);
 
-        assert_eq!(exons[0].start, 11874);
-        assert_eq!(exons[0].end, 12227);
-        assert_eq!(exons[0].cds_start, None);
-        assert_eq!(exons[0].cds_end, None);
+        assert_eq!(exons[0].start(), 11874);
+        assert_eq!(exons[0].end(), 12227);
+        assert_eq!(*exons[0].cds_start(), None);
+        assert_eq!(*exons[0].cds_end(), None);
 
-        assert_eq!(exons[1].start, 12613);
-        assert_eq!(exons[1].end, 12721);
-        assert_eq!(exons[1].cds_start, None);
-        assert_eq!(exons[1].cds_end, None);
+        assert_eq!(exons[1].start(), 12613);
+        assert_eq!(exons[1].end(), 12721);
+        assert_eq!(*exons[1].cds_start(), None);
+        assert_eq!(*exons[1].cds_end(), None);
 
-        assert_eq!(exons[2].start, 13221);
-        assert_eq!(exons[2].end, 14409);
-        assert_eq!(exons[2].cds_start, None);
-        assert_eq!(exons[2].cds_end, None);
+        assert_eq!(exons[2].start(), 13221);
+        assert_eq!(exons[2].end(), 14409);
+        assert_eq!(*exons[2].cds_start(), None);
+        assert_eq!(*exons[2].cds_end(), None);
     }
 
     #[test]

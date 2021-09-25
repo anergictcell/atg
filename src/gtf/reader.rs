@@ -127,7 +127,6 @@ impl<R: std::io::Read> TranscriptRead for Reader<R> {
     ///
     /// // create a reader from the tests GTF file
     /// let reader = Reader::from_file("tests/data/tests.gtf");
-    /// assert_eq!(reader.is_ok(), true);
     ///
     /// // parse the GTF file
     /// let transcripts = reader

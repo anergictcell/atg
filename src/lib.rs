@@ -1,3 +1,5 @@
+#![doc = include_str!("../README.md")]
+
 pub mod gtf;
 pub mod models;
 pub mod refgene;

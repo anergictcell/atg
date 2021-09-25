@@ -135,17 +135,17 @@ impl<W: std::io::Write> TranscriptWrite for Writer<W> {
             .iter()
             // RefGene handled start coordinates differently, so we substract 1.
             // See the comments in `instantiate_exons`.
-            .map(|exon| format!("{},", (exon.start - 1)))
+            .map(|exon| format!("{},", (exon.start() - 1)))
             .collect();
         columns[EXON_ENDS_COL] = transcript
             .exons()
             .iter()
-            .map(|exon| format!("{},", exon.end))
+            .map(|exon| format!("{},", exon.end()))
             .collect();
         columns[EXON_FRAMES_COL] = transcript
             .exons()
             .iter()
-            .map(|exon| format!("{},", exon.frame_offset.to_string()))
+            .map(|exon| format!("{},", exon.frame_offset().to_string()))
             .collect();
 
         self.inner.write_all((columns.join("\t")).as_bytes())

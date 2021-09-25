@@ -148,34 +148,34 @@ impl GtfRecord {
     /// use this method if you want to update an [`Exon`](crate::models::Exon)
     /// with the data of the [`GtfRecord`]
     pub fn add_to_exon(self, mut exon: Exon) -> Exon {
-        exon.start = min(exon.start, self.start);
-        exon.end = max(exon.end, self.end);
+        *exon.start_mut() = min(exon.start(), self.start);
+        *exon.end_mut() = max(exon.end(), self.end);
 
         match self.feature {
             GtfFeature::CDS => {
-                exon.cds_start = Some(min(exon.cds_start.unwrap_or(self.start), self.start));
-                exon.cds_end = Some(max(exon.cds_end.unwrap_or(self.end), self.end));
+                *exon.cds_start_mut() = Some(min(exon.cds_start().unwrap_or(self.start), self.start));
+                *exon.cds_end_mut() = Some(max(exon.cds_end().unwrap_or(self.end), self.end));
                 exon.set_frame(self.frame_offset);
             }
             GtfFeature::StopCodon => match self.strand {
                 Strand::Plus => {
-                    exon.cds_start = Some(min(self.start, exon.cds_start.unwrap_or(self.start)));
-                    exon.cds_end = Some(self.end);
+                    *exon.cds_start_mut() = Some(min(self.start, exon.cds_start().unwrap_or(self.start)));
+                    *exon.cds_end_mut() = Some(self.end);
                 }
                 Strand::Minus => {
-                    exon.cds_start = Some(self.start);
-                    exon.cds_end = Some(max(self.end, exon.cds_end.unwrap_or(self.end)));
+                    *exon.cds_start_mut() = Some(self.start);
+                    *exon.cds_end_mut() = Some(max(self.end, exon.cds_end().unwrap_or(self.end)));
                 }
                 _ => {}
             },
             GtfFeature::StartCodon => match self.strand {
                 Strand::Plus => {
-                    exon.cds_start = Some(self.start);
-                    exon.cds_end = Some(max(self.end, exon.cds_end.unwrap_or(self.end)));
+                    *exon.cds_start_mut() = Some(self.start);
+                    *exon.cds_end_mut() = Some(max(self.end, exon.cds_end().unwrap_or(self.end)));
                 }
                 Strand::Minus => {
-                    exon.cds_start = Some(min(self.start, exon.cds_start.unwrap_or(self.start)));
-                    exon.cds_end = Some(self.end);
+                    *exon.cds_start_mut() = Some(min(self.start, exon.cds_start().unwrap_or(self.start)));
+                    *exon.cds_end_mut() = Some(self.end);
                 }
                 _ => {}
             },
@@ -290,28 +290,28 @@ impl FromStr for GtfRecord {
 
 impl From<GtfRecord> for models::Exon {
     fn from(feature: GtfRecord) -> Self {
-        let mut exon = Exon {
-            start: feature.start,
-            end: feature.end,
-            frame_offset: feature.frame_offset,
-            cds_start: None,
-            cds_end: None,
-        };
+        let mut exon = Exon::new(
+            feature.start,
+            feature.end,
+            None,
+            None,
+            feature.frame_offset,
+        );
         match feature.feature {
             GtfFeature::CDS => {
-                exon.cds_start = Some(feature.start);
-                exon.cds_end = Some(feature.end);
+                *exon.cds_start_mut() = Some(feature.start);
+                *exon.cds_end_mut() = Some(feature.end);
             }
             GtfFeature::UTR | GtfFeature::UTR3 | GtfFeature::UTR5 => {
-                exon.frame_offset = Frame::None;
+                *exon.frame_offset_mut() = Frame::None;
             }
             GtfFeature::StopCodon => {
-                exon.cds_start = Some(feature.start);
-                exon.cds_end = Some(feature.end);
+                *exon.cds_start_mut() = Some(feature.start);
+                *exon.cds_end_mut() = Some(feature.end);
             }
             GtfFeature::StartCodon => {
-                exon.cds_start = Some(feature.start);
-                exon.cds_end = Some(feature.end);
+                *exon.cds_start_mut() = Some(feature.start);
+                *exon.cds_end_mut() = Some(feature.end);
             }
             _ => {}
         }
