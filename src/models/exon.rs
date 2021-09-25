@@ -15,7 +15,7 @@ use crate::models::Frame;
 /// let non_coding_exon = Exon::new(start, end, None, None, Frame::None);
 ///
 /// assert_eq!(non_coding_exon.is_coding(), false);
-/// 
+///
 /// let coding_exon = Exon::new(start, end, Some(start), Some(end), Frame::Zero);
 ///
 /// assert_eq!(coding_exon.is_coding(), true);
@@ -43,7 +43,7 @@ impl Exon {
     /// let non_coding_exon = Exon::new(start, end, None, None, Frame::None);
     ///
     /// assert_eq!(non_coding_exon.is_coding(), false);
-    /// 
+    ///
     /// let coding_exon = Exon::new(start, end, Some(start), Some(end), Frame::Zero);
     ///
     /// assert_eq!(coding_exon.is_coding(), true);

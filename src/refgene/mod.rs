@@ -4,7 +4,7 @@
 //!
 //! I could not find a proper documentation for the refGene format anywhere
 //! There are various trustworthy and untrustworthy defintions
-//! I mainly relied on this 
+//! I mainly relied on this
 //! [BioStars](https://www.biostars.org/p/18480/)
 //! tip to "Describe table schema" on [UCSC Genome](http://genome.ucsc.edu/cgi-bin/hgTables)
 //!

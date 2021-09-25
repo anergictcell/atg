@@ -52,7 +52,7 @@ impl Attributes {
     /// .unwrap();
     ///
     /// let attrs = attr.all();
-    /// 
+    ///
     /// assert_eq!(attrs[0], ("gene_id", "Foo"));
     /// assert_eq!(attrs[1], ("transcript_id", "Bar"));
     /// assert_eq!(attrs[2], ("something", "else"));

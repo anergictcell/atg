@@ -2,7 +2,6 @@ use std::error::Error;
 use std::fmt;
 use std::num::ParseIntError;
 
-
 pub struct ParseGtfError {
     pub message: String,
 }

@@ -6,7 +6,7 @@
 //!
 //! # GTF specs
 //! GTF2.2 files must contain the following columns:
-//! 
+//!
 //! | Column | Mandatory | Type | Explanation |
 //! | --- | --- | --- | --- |
 //! | seqname | Yes | str | The name of the sequence. Commonly, this is the chromosome ID or contig ID. Note that the coordinates used must be unique within each sequence name in all GTFs for an annotation set. |
@@ -19,7 +19,7 @@
 //! | frame | Yes | enum(0, 1, 2) | The frame-offset of the feature |
 //! | attributes | Yes | str | key=value list (separated by ; ) **Must contain gene_id and transcript_id** |
 //! | comments  | Optional | str | Additional comments about the feature |
-//! 
+//!
 
 mod constants;
 mod reader;
@@ -30,6 +30,6 @@ mod writer;
 
 pub use crate::gtf::reader::Reader;
 pub use crate::gtf::record::{GtfFeature, GtfRecord, GtfRecordBuilder};
-pub use crate::gtf::writer::Writer;
-pub use crate::gtf::utils::Attributes;
 use crate::gtf::transcript::GtfRecordsGroup;
+pub use crate::gtf::utils::Attributes;
+pub use crate::gtf::writer::Writer;

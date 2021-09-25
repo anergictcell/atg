@@ -6,8 +6,8 @@ use std::path::Path;
 use std::str::FromStr;
 
 use crate::gtf::{GtfFeature, GtfRecord, GtfRecordsGroup};
-use crate::utils::errors::ParseGtfError;
 use crate::models::{Transcript, TranscriptRead, Transcripts};
+use crate::utils::errors::ParseGtfError;
 use crate::utils::errors::ReadWriteError;
 
 /// Parses GTF data and creates [`Transcript`]s.

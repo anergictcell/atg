@@ -38,7 +38,7 @@ use crate::utils::exon_cds_overlap;
 /// assert_eq!(transcripts.len(), 10);
 /// ```
 pub struct Reader<R> {
-    inner: std::io::BufReader<R>
+    inner: std::io::BufReader<R>,
 }
 
 impl Reader<File> {
@@ -80,7 +80,7 @@ impl<R: std::io::Read> Reader<R> {
     /// a remote source, e.g. via HTTP
     pub fn new(reader: R) -> Self {
         Reader {
-            inner: BufReader::new(reader)
+            inner: BufReader::new(reader),
         }
     }
 
@@ -89,10 +89,9 @@ impl<R: std::io::Read> Reader<R> {
     /// Use this when you know the size of your RefGene source
     pub fn with_capacity(capacity: usize, reader: R) -> Self {
         Reader {
-            inner: BufReader::with_capacity(capacity, reader)
+            inner: BufReader::with_capacity(capacity, reader),
         }
     }
-
 
     /// Returns one line of a RefGene file as `Transcript`
     ///

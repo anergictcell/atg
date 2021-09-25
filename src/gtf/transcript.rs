@@ -2,8 +2,8 @@ use core::convert::TryFrom;
 use std::fmt;
 
 use crate::gtf::{GtfFeature, GtfRecord};
-use crate::utils::errors::ParseGtfError;
 use crate::models::{CdsStat, Exon, Transcript, TranscriptBuilder};
+use crate::utils::errors::ParseGtfError;
 
 /// Groups all [`GtfRecord`] object that belong to one Transcript
 ///

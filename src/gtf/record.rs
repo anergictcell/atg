@@ -4,9 +4,9 @@ use std::fmt;
 
 use crate::gtf::constants::*;
 use crate::gtf::utils::Attributes;
-use crate::utils::errors::ParseGtfError;
 use crate::models;
 use crate::models::{Exon, Frame, Strand};
+use crate::utils::errors::ParseGtfError;
 
 /// Describes the actual feature type (Exon, CDS, etc) of [`GtfRecord`]
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -153,13 +153,15 @@ impl GtfRecord {
 
         match self.feature {
             GtfFeature::CDS => {
-                *exon.cds_start_mut() = Some(min(exon.cds_start().unwrap_or(self.start), self.start));
+                *exon.cds_start_mut() =
+                    Some(min(exon.cds_start().unwrap_or(self.start), self.start));
                 *exon.cds_end_mut() = Some(max(exon.cds_end().unwrap_or(self.end), self.end));
                 exon.set_frame(self.frame_offset);
             }
             GtfFeature::StopCodon => match self.strand {
                 Strand::Plus => {
-                    *exon.cds_start_mut() = Some(min(self.start, exon.cds_start().unwrap_or(self.start)));
+                    *exon.cds_start_mut() =
+                        Some(min(self.start, exon.cds_start().unwrap_or(self.start)));
                     *exon.cds_end_mut() = Some(self.end);
                 }
                 Strand::Minus => {
@@ -174,7 +176,8 @@ impl GtfRecord {
                     *exon.cds_end_mut() = Some(max(self.end, exon.cds_end().unwrap_or(self.end)));
                 }
                 Strand::Minus => {
-                    *exon.cds_start_mut() = Some(min(self.start, exon.cds_start().unwrap_or(self.start)));
+                    *exon.cds_start_mut() =
+                        Some(min(self.start, exon.cds_start().unwrap_or(self.start)));
                     *exon.cds_end_mut() = Some(self.end);
                 }
                 _ => {}
@@ -290,13 +293,7 @@ impl FromStr for GtfRecord {
 
 impl From<GtfRecord> for models::Exon {
     fn from(feature: GtfRecord) -> Self {
-        let mut exon = Exon::new(
-            feature.start,
-            feature.end,
-            None,
-            None,
-            feature.frame_offset,
-        );
+        let mut exon = Exon::new(feature.start, feature.end, None, None, feature.frame_offset);
         match feature.feature {
             GtfFeature::CDS => {
                 *exon.cds_start_mut() = Some(feature.start);
@@ -327,7 +324,7 @@ impl From<GtfRecord> for models::Exon {
 /// use atg::gtf::{Attributes, GtfFeature, GtfRecordBuilder};
 /// use atg::models::{Frame, Strand};
 /// use std::str::FromStr;
-/// 
+///
 /// let record = GtfRecordBuilder::new()
 ///     .chrom("chr1")
 ///     .source("local source")

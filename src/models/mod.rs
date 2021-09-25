@@ -52,41 +52,11 @@ pub mod helper_functions {
 
     fn exons() -> Vec<models::Exon> {
         vec![
-            models::Exon::new(
-                11,
-                15,
-                None,
-                None,
-                models::Frame::None,
-            ),
-            models::Exon::new(
-                21,
-                25,
-                Some(24),
-                Some(25),
-                models::Frame::Zero,
-            ),
-            models::Exon::new(
-                31,
-                35,
-                Some(31),
-                Some(35),
-                models::Frame::One,
-            ),
-            models::Exon::new(
-                41,
-                45,
-                Some(41),
-                Some(44),
-                models::Frame::Two,
-            ),
-            models::Exon::new(
-                51,
-                55,
-                None,
-                None,
-                models::Frame::None,
-            ),
+            models::Exon::new(11, 15, None, None, models::Frame::None),
+            models::Exon::new(21, 25, Some(24), Some(25), models::Frame::Zero),
+            models::Exon::new(31, 35, Some(31), Some(35), models::Frame::One),
+            models::Exon::new(41, 45, Some(41), Some(44), models::Frame::Two),
+            models::Exon::new(51, 55, None, None, models::Frame::None),
         ]
     }
 }
@@ -143,165 +113,93 @@ mod tests {
     #[test]
     fn test_exon_downstream_frame() {
         assert_eq!(
-            Exon::new(
-                1,
-                1,
-                Some(1),
-                Some(3),
-                Frame::Zero
-            )
-            .downstream_frame()
-            .unwrap(),
+            Exon::new(1, 1, Some(1), Some(3), Frame::Zero)
+                .downstream_frame()
+                .unwrap(),
             Frame::Zero
         );
 
         assert_eq!(
-            Exon::new(
-                1,
-                1,
-                Some(1),
-                Some(4),
-                Frame::Zero
-            )
-            .downstream_frame()
-            .unwrap(),
+            Exon::new(1, 1, Some(1), Some(4), Frame::Zero)
+                .downstream_frame()
+                .unwrap(),
             Frame::Two
         );
 
         assert_eq!(
-            Exon::new(
-                1,
-                1,
-                Some(1),
-                Some(5),
-                Frame::Zero
-            )
-            .downstream_frame()
-            .unwrap(),
+            Exon::new(1, 1, Some(1), Some(5), Frame::Zero)
+                .downstream_frame()
+                .unwrap(),
             Frame::One
         );
 
         assert_eq!(
-            Exon::new(
-                1,
-                1,
-                Some(1),
-                Some(6),
-                Frame::Zero
-            )
-            .downstream_frame()
-            .unwrap(),
+            Exon::new(1, 1, Some(1), Some(6), Frame::Zero)
+                .downstream_frame()
+                .unwrap(),
             Frame::Zero
         );
 
         assert_eq!(
-            Exon::new(
-                1,
-                1,
-                Some(1),
-                Some(3),
-                Frame::One
-            )
-            .downstream_frame()
-            .unwrap(),
+            Exon::new(1, 1, Some(1), Some(3), Frame::One)
+                .downstream_frame()
+                .unwrap(),
             Frame::One
         );
 
         // XATG
         assert_eq!(
-            Exon::new(
-                1,
-                1,
-                Some(1),
-                Some(4),
-                Frame::One
-            )
-            .downstream_frame()
-            .unwrap(),
+            Exon::new(1, 1, Some(1), Some(4), Frame::One)
+                .downstream_frame()
+                .unwrap(),
             Frame::Zero
         );
 
         // XATGX
         assert_eq!(
-            Exon::new(
-                1,
-                1,
-                Some(1),
-                Some(5),
-                Frame::One
-            )
-            .downstream_frame()
-            .unwrap(),
+            Exon::new(1, 1, Some(1), Some(5), Frame::One)
+                .downstream_frame()
+                .unwrap(),
             Frame::Two
         );
 
         // XATGXX
         assert_eq!(
-            Exon::new(
-                1,
-                1,
-                Some(1),
-                Some(6),
-                Frame::One
-            )
-            .downstream_frame()
-            .unwrap(),
+            Exon::new(1, 1, Some(1), Some(6), Frame::One)
+                .downstream_frame()
+                .unwrap(),
             Frame::One
         );
 
         // XXA
         assert_eq!(
-            Exon::new(
-                1,
-                1,
-                Some(1),
-                Some(3),
-                Frame::Two
-            )
-            .downstream_frame()
-            .unwrap(),
+            Exon::new(1, 1, Some(1), Some(3), Frame::Two)
+                .downstream_frame()
+                .unwrap(),
             Frame::Two
         );
 
         // XXAT
         assert_eq!(
-            Exon::new(
-                1,
-                1,
-                Some(1),
-                Some(4),
-                Frame::Two
-            )
-            .downstream_frame()
-            .unwrap(),
+            Exon::new(1, 1, Some(1), Some(4), Frame::Two)
+                .downstream_frame()
+                .unwrap(),
             Frame::One
         );
 
         // XXATG
         assert_eq!(
-            Exon::new(
-                1,
-                1,
-                Some(1),
-                Some(5),
-                Frame::Two
-            )
-            .downstream_frame()
-            .unwrap(),
+            Exon::new(1, 1, Some(1), Some(5), Frame::Two)
+                .downstream_frame()
+                .unwrap(),
             Frame::Zero
         );
 
         // XXATGX
         assert_eq!(
-            Exon::new(
-                1,
-                1,
-                Some(1),
-                Some(6),
-                Frame::Two
-            )
-            .downstream_frame()
-            .unwrap(),
+            Exon::new(1, 1, Some(1), Some(6), Frame::Two)
+                .downstream_frame()
+                .unwrap(),
             Frame::Two
         );
     }
