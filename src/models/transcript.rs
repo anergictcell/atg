@@ -11,7 +11,7 @@ use crate::utils::errors::BuildTranscriptError;
 /// and both start and end coordinate are included.
 ///
 /// A transcript contains exons, some of which may be coding.
-/// Transcripts are directional and the direction is encoded through the strand.
+/// Transcripts are directional and the direction is encoded through the [strand](crate::models::Strand).
 
 /// `Transcript`s should be created using `TranscriptBuilder`
 #[derive(Debug)]
@@ -28,34 +28,51 @@ pub struct Transcript {
 }
 
 impl Transcript {
+    /// Returns the index used in [RefGene](crate::refgene) for
+    /// faster genomic range queries
     pub fn bin(&self) -> &Option<u16> {
         &self.bin
     }
 
+    /// Returns the name of the transcript - usually transcript id (e.g. `NM_000122.1`)
     pub fn name(&self) -> &str {
         &self.name
     }
 
+    /// Returns the gene symbol of the transcript
     pub fn gene(&self) -> &str {
         &self.gene_symbol
     }
 
+    /// Returns the reference sequence chromosome
     pub fn chrom(&self) -> &str {
         &self.chrom
     }
 
+    /// Returns the strand / Direction of transcription
     pub fn strand(&self) -> Strand {
         self.strand
     }
 
+    /// Returns the status of the CDS start
+    ///
+    /// This will be the start codon for + transcripts and
+    /// the stop codon for - transcripts
+    /// See [`Transcript::cds_start_codon_stat`] for the actual start codon
     pub fn cds_start_stat(&self) -> CdsStat {
         self.cds_start_stat
     }
 
+    /// Returns the status of the CDS end
+    ///
+    /// This will be the stop codon for + transcripts and
+    /// the start codon for - transcripts.
+    /// See [`Transcript::cds_stop_codon_stat`] for the actual stop codon
     pub fn cds_end_stat(&self) -> CdsStat {
         self.cds_end_stat
     }
 
+    /// Returns the status of the actual Start codon
     pub fn cds_start_codon_stat(&self) -> CdsStat {
         match self.strand {
             Strand::Minus => self.cds_end_stat(),
@@ -63,6 +80,7 @@ impl Transcript {
         }
     }
 
+    /// Returns the status of the actual Stop codon
     pub fn cds_stop_codon_stat(&self) -> CdsStat {
         match self.strand {
             Strand::Minus => self.cds_start_stat(),
@@ -70,30 +88,47 @@ impl Transcript {
         }
     }
 
+    /// Returns a vector of all [`Exon`]s
     pub fn exons(&self) -> &Vec<Exon> {
         &self.exons
     }
 
+    /// Returns a mutable reference to an [`Exon`] vector
     pub fn exons_mut(&mut self) -> &mut Vec<Exon> {
         &mut self.exons
     }
 
+    /// Returns confidence score of the transcript
     pub fn score(&self) -> Option<f32> {
         self.score
     }
 
+    /// Adds another exon to the transcript
+    ///
+    /// This method does not check for the correct sorting
+    /// of the exons. The user must ensure proper exon sorting.
+    ///
+    /// This might change in the future
     pub fn push_exon(&mut self, exon: Exon) {
         self.exons.push(exon)
     }
 
+    /// Adds multiple exons to the transcript
+    ///
+    /// This method does not check for the correct sorting
+    /// of the exons. The user must ensure proper exon sorting.
+    ///
+    /// This might change in the future
     pub fn append_exons(&mut self, exons: &mut Vec<Exon>) {
         self.exons.append(exons)
     }
 
+    /// Update the [`Transcript::cds_start_stat`]
     pub fn set_cds_start_stat(&mut self, stat: CdsStat) {
         self.cds_start_stat = stat;
     }
 
+    /// Update the [`Transcript::cds_end_stat`]
     pub fn set_cds_end_stat(&mut self, stat: CdsStat) {
         self.cds_end_stat = stat;
     }
@@ -111,18 +146,22 @@ impl Transcript {
         }
     }
 
+    /// Returns the number of exons
     pub fn exon_count(&self) -> usize {
         self.exons.len()
     }
 
+    /// Returns the leftmost genomic location of the transcript
     pub fn tx_start(&self) -> u32 {
         self.exons[0].start()
     }
 
+    /// Returns the rightmost genomic location of the transcript
     pub fn tx_end(&self) -> u32 {
         self.exons[self.exons.len() - 1].end()
     }
 
+    /// Returns the leftmost position of the coding sequence
     pub fn cds_start(&self) -> Option<u32> {
         for exon in &self.exons {
             if let Some(x) = exon.cds_start() {
@@ -132,6 +171,7 @@ impl Transcript {
         None
     }
 
+    /// Returns the rightmost position of the coding sequence
     pub fn cds_end(&self) -> Option<u32> {
         for exon in self.exons.iter().rev() {
             if let Some(x) = exon.cds_end() {
@@ -141,6 +181,7 @@ impl Transcript {
         None
     }
 
+    /// Returns `true` if the transcript is coding
     pub fn is_coding(&self) -> bool {
         for exon in &self.exons {
             if exon.is_coding() {
@@ -150,7 +191,7 @@ impl Transcript {
         false
     }
 
-    /// Get a vector of all exons that span the start exon
+    /// Returns a vector of all exons that span the start exon
     ///
     /// The start codon can be split across multiple exons
     /// and thus the coordinates of it can't be easily calculated
@@ -237,6 +278,21 @@ impl fmt::Display for Transcript {
 }
 
 /// Builds a `Transcript`
+///
+/// # Examples
+///
+/// ```rust
+/// use atg;
+/// use atg::models::TranscriptBuilder;
+/// let transcript = TranscriptBuilder::new()
+///     .name("NM_001203247.2")
+///     .chrom("chr7")
+///     .gene("EZH2")
+///     .strand(atg::models::Strand::Minus)
+///     .build()
+///     .unwrap();
+/// assert_eq!(transcript.name(), "NM_001203247.2");
+/// ```
 pub struct TranscriptBuilder<'a> {
     bin: Option<u16>,
     name: Option<&'a str>,

@@ -106,7 +106,7 @@ impl Exon {
         &mut self.cds_end
     }
 
-    /// If the exon is coding, the [frame offset](crate::models::Frame)
+    /// If the exon is coding, the [Frame](crate::models::Frame)
     /// specifies the offset of the reading frame
     pub fn frame_offset(&self) -> &Frame {
         &self.frame_offset
