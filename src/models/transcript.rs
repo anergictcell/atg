@@ -277,7 +277,7 @@ impl fmt::Display for Transcript {
     }
 }
 
-/// Builds a `Transcript`
+/// Builds a [`Transcript`]
 ///
 /// # Examples
 ///

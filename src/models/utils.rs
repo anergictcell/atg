@@ -4,6 +4,10 @@ use std::str::FromStr;
 use crate::models::{Transcript, Transcripts};
 use crate::utils::errors::ReadWriteError;
 
+/// The Status of the start of stop codon of a CDS
+///
+/// This is used by RefGene and inferred in GTF based
+/// on the absence or presence of dedicated Start- & Stop codon records.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum CdsStat {
     None,
@@ -45,6 +49,16 @@ impl FromStr for CdsStat {
     }
 }
 
+/// Indicates the strandness of the transcript
+///
+/// # Examples
+/// ```
+/// use std::str::FromStr;
+/// use atg::models::Strand;
+///
+/// let strand = Strand::from_str("+").unwrap();
+/// assert_eq!(strand, Strand::Plus);
+/// ```
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Strand {
     Plus,
@@ -87,6 +101,7 @@ impl FromStr for Strand {
     }
 }
 
+/// Trait to write ['Transcripts'] or ['Transcript'] into a `Writer` instance
 pub trait TranscriptWrite {
     fn writeln_single_transcript(&mut self, transcript: &Transcript) -> Result<(), std::io::Error>;
 
@@ -104,7 +119,7 @@ pub trait TranscriptWrite {
     }
 }
 
-/// Trait for parsing the input into `Transcripts`
+/// Trait for parsing the input into [`Transcripts`]
 pub trait TranscriptRead {
     /// Consumes the `Reader` and returns `Transcripts`
     fn transcripts(&mut self) -> Result<Transcripts, ReadWriteError>;

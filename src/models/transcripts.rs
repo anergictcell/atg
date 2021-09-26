@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::models::Transcript;
 
-/// A convinience wrapper to handle  large amounts of `Transcript`s
+/// A convinience wrapper to handle  large amounts of [`Transcript`]s
 ///
 /// It allows fast lookup operation by gene or transcript name.
 ///

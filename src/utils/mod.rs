@@ -1,3 +1,4 @@
+//! Contains some functions and Errors that are used all across `ATG`
 pub mod errors;
 mod genomic_relations;
 

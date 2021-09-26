@@ -16,8 +16,8 @@ pub use crate::models::transcripts::Transcripts;
 pub use crate::models::utils::parse_chrom;
 pub use crate::models::utils::{CdsStat, Strand, TranscriptRead, TranscriptWrite};
 
-/// Helper functions is only used for tests and doctests
-/// they should not be used for general functionality
+/// Helper functions is only used for tests and doctests.
+/// They should not be used for general functionality
 pub mod helper_functions {
     use crate::models;
 

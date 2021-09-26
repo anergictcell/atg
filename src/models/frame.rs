@@ -3,10 +3,22 @@ use std::ops::Add;
 use std::str::FromStr;
 
 /// Frame indicates the reading frame offset of an Exon
+///
 /// It is based on GTF nomenclature:
-/// 0 indicates that the feature begins with a whole codon at the 5' most base.
-/// 1 means that there is one extra base (the third base of a codon) before the first whole codon
-/// 2 means that there are two extra bases (the second and third bases of the codon) before the first codon.
+/// - 0 indicates that the feature begins with a whole codon at the 5' most base.
+/// - 1 means that there is one extra base (the third base of a codon) before the first whole codon
+/// - 2 means that there are two extra bases (the second and third bases of the codon) before the first codon.
+///
+/// # Examples
+/// ```rust
+/// use std::str::FromStr;
+/// use atg::models::Frame;
+///
+/// let frame_str = Frame::from_str("1").unwrap();
+/// let frame_int = Frame::from_int(1).unwrap();
+///
+/// assert_eq!(frame_str, frame_int);
+/// ```
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Frame {
     Dot,  // used for GTF file writing. Converts to .
@@ -33,8 +45,9 @@ impl fmt::Display for Frame {
 }
 
 impl Frame {
+    /// Returns a Frame based on the integer frame offset
     pub fn from_int(s: u32) -> Result<Self, String> {
-        match s {
+        match s % 3 {
             0 => Ok(Frame::Zero),
             1 => Ok(Frame::One),
             2 => Ok(Frame::Two),
@@ -55,6 +68,7 @@ impl Frame {
 impl Add for Frame {
     type Output = Result<Self, String>;
 
+    /// Calculates the next resulting Frame offset
     fn add(self, other: Self) -> Result<Self, String> {
         match (self.to_int(), other.to_int()) {
             (Ok(x), Ok(y)) => Self::from_int((x + y) % 3),
@@ -67,6 +81,14 @@ impl Add for Frame {
 
 impl FromStr for Frame {
     type Err = String;
+    /// Creates a [`Frame`] from a string
+    ///
+    /// Only accepts the following options:
+    /// - `-1`
+    /// - `0`
+    /// - `1`
+    /// - `2`
+    /// - `.`
     fn from_str(s: &str) -> Result<Self, String> {
         match s {
             "-1" => Ok(Frame::None),
