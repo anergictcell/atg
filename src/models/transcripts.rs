@@ -101,12 +101,12 @@ impl Transcripts {
     pub fn by_gene(&self, gene: &str) -> Option<Vec<&Transcript>> {
         match self.gene.get(gene) {
             Some(ids) => {
-                let mut res:Vec<&Transcript> = Vec::with_capacity(ids.len());
+                let mut res: Vec<&Transcript> = Vec::with_capacity(ids.len());
                 for id in ids {
                     res.push(&self.list[*id]);
                 }
                 Some(res)
-            },
+            }
             None => None,
         }
     }
@@ -145,7 +145,10 @@ impl Transcripts {
     /// ```
     pub fn push(&mut self, record: Transcript) {
         if self.name.get(record.name()).is_some() {
-            panic!("A transcript with the name {} already exists", record.name())
+            panic!(
+                "A transcript with the name {} already exists",
+                record.name()
+            )
         }
         let idx = self.list.len();
         self.name.insert(record.name().to_string(), idx);
