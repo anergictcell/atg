@@ -3,16 +3,18 @@ extern crate log;
 
 use clap::{App, Arg};
 
+use atg;
 use atg::gtf;
 use atg::models::TranscriptWrite;
 use atg::read_transcripts;
 use atg::refgene;
 
 fn main() {
-    let cli_commands = App::new("Transcripts")
-        .version("0.1.0")
-        .author("Jonas Marcello <jonas.marcello@centogene.com>")
+    let cli_commands = App::new(env!("CARGO_PKG_NAME"))
+        .version(atg::VERSION)
+        .author(env!("CARGO_PKG_AUTHORS"))
         .about("Convert transcript data from and to different file formats")
+        .after_help(env!("CARGO_PKG_HOMEPAGE"))
         .arg(
             Arg::with_name("from")
                 .short("f")
