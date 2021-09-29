@@ -145,7 +145,7 @@ impl<W: std::io::Write> TranscriptWrite for Writer<W> {
         columns[EXON_FRAMES_COL] = transcript
             .exons()
             .iter()
-            .map(|exon| format!("{},", exon.frame_offset().to_string()))
+            .map(|exon| format!("{},", exon.frame_offset().to_refgene()))
             .collect();
 
         self.inner.write_all((columns.join("\t")).as_bytes())

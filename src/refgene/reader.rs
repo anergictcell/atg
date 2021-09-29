@@ -308,7 +308,7 @@ fn instantiate_exons(cols: &[&str]) -> Result<Vec<Exon>, ParseRefGeneError> {
             end,
             exon_cds.0,
             exon_cds.1,
-            Frame::from_str(frame_offsets.get(i).ok_or("Too few exon Frame offsets")?)?,
+            Frame::from_refgene(frame_offsets.get(i).ok_or("Too few exon Frame offsets")?)?,
         ));
     }
     Ok(exons)

@@ -53,14 +53,14 @@ impl<W: std::io::Write> Writer<W> {
     pub fn new(writer: W) -> Self {
         Writer {
             inner: BufWriter::new(writer),
-            gtf_source: "transcripts".to_string(),
+            gtf_source: "atg".to_string(),
         }
     }
 
     pub fn with_capacity(capacity: usize, writer: W) -> Self {
         Writer {
             inner: BufWriter::with_capacity(capacity, writer),
-            gtf_source: "transcripts".to_string(),
+            gtf_source: "atg".to_string(),
         }
     }
 
