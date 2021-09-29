@@ -184,6 +184,11 @@ impl GtfRecord {
             },
             _ => {}
         }
+
+        if exon.is_coding() && !exon.frame_offset().is_known() {
+            exon.set_frame(self.frame_offset);
+        }
+
         exon
     }
 }

@@ -108,6 +108,15 @@ fn main() {
             }
             Err(err) => panic!("Error writing GTF: {}", err),
         },
+        "raw" => {
+            for t in transcripts {
+                println!("{}", t);
+                for exon in t.exons() {
+                    println!("{}", exon)
+                }
+            }
+            Ok(())
+        }
         _ => panic!("Invalid >>to<< parameter"),
     };
     debug!("Finshed writing output data");
