@@ -64,6 +64,13 @@ impl GtfRecordsGroup {
         loop {
             let line = self.exons.pop();
             if let Some(x) = line {
+                // TODO: Change this to only merge book-ended
+                // features if the two features are CDS + StopCodon.
+                // All other features should be kept separate, even if they
+                // are right next to each other.
+                // Genetically speaking, they would be considered as one exon
+                // and not two separate exons. But to keep the input data intact,
+                // this should be changed.
                 if x.start() <= (exon.end() + 1) {
                     exon = x.add_to_exon(exon);
                 } else {

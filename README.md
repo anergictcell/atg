@@ -67,5 +67,5 @@ match writer.write_transcripts(&transcripts) {
 
 ## Known issues
 ### GTF parsing
-- [ ] NM_00137172 has two book-ended exons (155160639-155161619 || 155161620-155162101). During input parsing, book-ended features are merged into one exon
+- [ ] NM_001371720.1 has two book-ended exons (155160639-155161619 || 155161620-155162101). During input parsing, book-ended features are merged into one exon
 

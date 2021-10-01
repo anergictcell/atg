@@ -41,8 +41,8 @@ impl Codon {
     /// ```rust
     /// use atg;
     /// use atg::models::Codon;
-    /// use atg::models::helper_functions;
-    /// let transcript = helper_functions::standard_transcript();
+    /// use atg::tests::transcripts;
+    /// let transcript = transcripts::standard_transcript();
     /// let start = transcript.cds_start().unwrap();
     /// let codon = Codon::from_transcript(&transcript, &start).unwrap();
     /// assert_eq!(codon.fragments().len(), 2);

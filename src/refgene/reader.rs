@@ -317,6 +317,7 @@ fn instantiate_exons(cols: &[&str]) -> Result<Vec<Exon>, ParseRefGeneError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::tests::transcripts;
 
     #[test]
     fn test_parse_exons_no_cds() {
@@ -472,5 +473,57 @@ mod tests {
             exons.unwrap_err().message,
             "invalid frame indicator /".to_string()
         );
+    }
+
+    #[test]
+    fn test_nm_001365057() {
+        let transcripts = Reader::from_file("tests/data/NM_001365057.2.refgene")
+            .unwrap()
+            .transcripts()
+            .unwrap();
+
+        assert_eq!(
+            transcripts.by_name("NM_001365057.2").unwrap(),
+            &transcripts::nm_001365057()
+        )
+    }
+
+    #[test]
+    fn test_nm_001365408() {
+        let transcripts = Reader::from_file("tests/data/NM_001365408.1.refgene")
+            .unwrap()
+            .transcripts()
+            .unwrap();
+
+        assert_eq!(
+            transcripts.by_name("NM_001365408.1").unwrap(),
+            &transcripts::nm_001365408()
+        )
+    }
+
+    #[test]
+    fn test_nm_001371720() {
+        let transcripts = Reader::from_file("tests/data/NM_001371720.1.refgene")
+            .unwrap()
+            .transcripts()
+            .unwrap();
+
+        assert_eq!(
+            transcripts.by_name("NM_001371720.1").unwrap(),
+            &transcripts::nm_001371720(false)
+        )
+    }
+
+    #[test]
+    fn test_nm_201550() {
+        let transcripts = Reader::from_file("tests/data/NM_201550.4.refgene")
+            .unwrap()
+            .transcripts()
+            .unwrap();
+
+        assert_eq!(
+            transcripts.by_name("NM_201550.4").unwrap(),
+            &transcripts::nm_201550()
+        )
     }
 }

@@ -13,11 +13,11 @@ use crate::utils::errors::ReadWriteError;
 ///
 /// ```rust
 /// use std::io;
-/// use atg::models::helper_functions;
+/// use atg::tests;;
 /// use atg::refgene::Writer;
 /// use atg::models::TranscriptWrite;
 ///
-/// let transcripts = vec![helper_functions::standard_transcript()];
+/// let transcripts = vec![tests::transcripts::standard_transcript()];
 ///
 /// let output = Vec::new(); // substitute this with proper IO (io::stdout())
 /// let mut writer = Writer::new(output);
