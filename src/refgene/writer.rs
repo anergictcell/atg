@@ -13,11 +13,11 @@ use crate::utils::errors::ReadWriteError;
 ///
 /// ```rust
 /// use std::io;
-/// use atg::models::helper_functions;
+/// use atg::tests;;
 /// use atg::refgene::Writer;
 /// use atg::models::TranscriptWrite;
 ///
-/// let transcripts = vec![helper_functions::standard_transcript()];
+/// let transcripts = vec![tests::transcripts::standard_transcript()];
 ///
 /// let output = Vec::new(); // substitute this with proper IO (io::stdout())
 /// let mut writer = Writer::new(output);
@@ -145,7 +145,7 @@ impl<W: std::io::Write> TranscriptWrite for Writer<W> {
         columns[EXON_FRAMES_COL] = transcript
             .exons()
             .iter()
-            .map(|exon| format!("{},", exon.frame_offset().to_string()))
+            .map(|exon| format!("{},", exon.frame_offset().to_refgene()))
             .collect();
 
         self.inner.write_all((columns.join("\t")).as_bytes())

@@ -1,3 +1,4 @@
+use std::cmp::PartialEq;
 use std::fmt;
 
 use crate::models::codon::Codon;
@@ -274,6 +275,50 @@ impl fmt::Display for Transcript {
             self.tx_start(),
             self.tx_end()
         )
+    }
+}
+
+impl PartialEq for Transcript {
+    /// Returns `true` if both `Transcript`s are identical
+    ///
+    /// The fields `bin` and `score` are **not** taken into consideration
+    /// for equality.
+    fn eq(&self, other: &Self) -> bool {
+        if self.name != other.name {
+            return false;
+        };
+
+        if self.chrom != other.chrom {
+            return false;
+        };
+
+        if self.strand != other.strand {
+            return false;
+        };
+
+        if self.gene_symbol != other.gene_symbol {
+            return false;
+        };
+
+        if self.cds_start_stat != other.cds_start_stat {
+            return false;
+        };
+
+        if self.cds_end_stat != other.cds_end_stat {
+            return false;
+        };
+
+        if self.exon_count() != other.exon_count() {
+            return false;
+        };
+
+        for (exon_a, exon_b) in self.exons.iter().zip(&other.exons) {
+            if exon_a != exon_b {
+                return false;
+            }
+        }
+
+        true
     }
 }
 

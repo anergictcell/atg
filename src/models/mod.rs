@@ -16,51 +16,6 @@ pub use crate::models::transcripts::Transcripts;
 pub use crate::models::utils::parse_chrom;
 pub use crate::models::utils::{CdsStat, Strand, TranscriptRead, TranscriptWrite};
 
-/// Helper functions is only used for tests and doctests.
-/// They should not be used for general functionality
-pub mod helper_functions {
-    use crate::models;
-
-    /// Generates a transcript to be used for tests.
-    /// It contains 5 exons, 3 of which are coding
-    ///
-    /// ```text
-    /// Nucleotide positions:
-    ///
-    ///    1....   2....   3....   4....   5....
-    ///    12345   12345   12345   12345   12345
-    /// ---=====---===XX---XXXXX---XXXX=---=====---
-    ///
-    /// ---  Intron
-    /// ===  Exon (non-coding)
-    /// XXX  CDS
-    /// ```
-    pub fn standard_transcript() -> models::Transcript {
-        let mut transcript = models::TranscriptBuilder::new()
-            .name("Test-Transcript")
-            .chrom("chr1")
-            .strand(models::Strand::Plus)
-            .gene("Test-Gene")
-            .cds_start_stat(models::CdsStat::None)
-            .cds_end_stat(models::CdsStat::None)
-            .build()
-            .unwrap();
-
-        transcript.append_exons(&mut exons());
-        transcript
-    }
-
-    fn exons() -> Vec<models::Exon> {
-        vec![
-            models::Exon::new(11, 15, None, None, models::Frame::None),
-            models::Exon::new(21, 25, Some(24), Some(25), models::Frame::Zero),
-            models::Exon::new(31, 35, Some(31), Some(35), models::Frame::One),
-            models::Exon::new(41, 45, Some(41), Some(44), models::Frame::Two),
-            models::Exon::new(51, 55, None, None, models::Frame::None),
-        ]
-    }
-}
-
 #[cfg(test)]
 mod tests {
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -219,7 +174,7 @@ mod test_start_codon {
     // 6. ---=====---====A-----T-----GXXX=---=====--- >> not really possible, but for the sake of it, let's consider it as well
 
     use super::*;
-    use helper_functions::standard_transcript;
+    use crate::tests::transcripts::standard_transcript;
 
     #[test]
     fn case_1() {
@@ -319,7 +274,7 @@ mod test_stop_codon {
     // 6. ---=====---===XU-----A-----G====---=====--- >> not really possible, but for the sake of it, let's consider it as well
 
     use super::*;
-    use helper_functions::standard_transcript;
+    use crate::tests::transcripts::standard_transcript;
 
     #[test]
     fn case_1() {
@@ -411,7 +366,7 @@ mod test_stop_codon {
 mod test_codon {
     use super::*;
     use crate::models::codon::Codon;
-    use helper_functions::standard_transcript;
+    use crate::tests::transcripts::standard_transcript;
 
     #[test]
     fn test_codon_builder() {

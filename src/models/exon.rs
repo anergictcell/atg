@@ -180,11 +180,12 @@ impl fmt::Display for Exon {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "Exon ({}-{}) [{}-{}]",
+            "Exon ({}-{}) [{}-{}] ^{}^",
             self.start,
             self.end,
             self.cds_start.unwrap_or(0),
-            self.cds_end.unwrap_or(0)
+            self.cds_end.unwrap_or(0),
+            self.frame_offset.to_string()
         )
     }
 }

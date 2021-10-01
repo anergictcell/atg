@@ -17,11 +17,11 @@ use crate::utils::subtract;
 ///
 /// ```rust
 /// use std::io;
-/// use atg::models::helper_functions;
+/// use atg::tests;
 /// use atg::gtf::Writer;
 /// use atg::models::TranscriptWrite;
 ///
-/// let transcripts = vec![helper_functions::standard_transcript()];
+/// let transcripts = vec![tests::transcripts::standard_transcript()];
 ///
 /// let output = Vec::new(); // substitute this with proper IO (io::stdout())
 /// let mut writer = Writer::new(output);
@@ -53,14 +53,14 @@ impl<W: std::io::Write> Writer<W> {
     pub fn new(writer: W) -> Self {
         Writer {
             inner: BufWriter::new(writer),
-            gtf_source: "transcripts".to_string(),
+            gtf_source: "atg".to_string(),
         }
     }
 
     pub fn with_capacity(capacity: usize, writer: W) -> Self {
         Writer {
             inner: BufWriter::with_capacity(capacity, writer),
-            gtf_source: "transcripts".to_string(),
+            gtf_source: "atg".to_string(),
         }
     }
 

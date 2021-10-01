@@ -320,3 +320,61 @@ mod test_ighm {
         assert_eq!(t.cds_stop_codon_stat(), CdsStat::Incomplete);
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::tests::transcripts;
+
+    #[test]
+    fn test_nm_001365057() {
+        let transcripts = Reader::from_file("tests/data/NM_001365057.2.gtf")
+            .unwrap()
+            .transcripts()
+            .unwrap();
+
+        assert_eq!(
+            transcripts.by_name("NM_001365057.2").unwrap(),
+            &transcripts::nm_001365057()
+        )
+    }
+
+    #[test]
+    fn test_nm_001365408() {
+        let transcripts = Reader::from_file("tests/data/NM_001365408.1.gtf")
+            .unwrap()
+            .transcripts()
+            .unwrap();
+
+        assert_eq!(
+            transcripts.by_name("NM_001365408.1").unwrap(),
+            &transcripts::nm_001365408()
+        )
+    }
+
+    #[test]
+    fn test_nm_001371720() {
+        let transcripts = Reader::from_file("tests/data/NM_001371720.1.gtf")
+            .unwrap()
+            .transcripts()
+            .unwrap();
+
+        assert_eq!(
+            transcripts.by_name("NM_001371720.1").unwrap(),
+            &transcripts::nm_001371720(true)
+        )
+    }
+
+    #[test]
+    fn test_nm_201550() {
+        let transcripts = Reader::from_file("tests/data/NM_201550.4.gtf")
+            .unwrap()
+            .transcripts()
+            .unwrap();
+
+        assert_eq!(
+            transcripts.by_name("NM_201550.4").unwrap(),
+            &transcripts::nm_201550()
+        )
+    }
+}

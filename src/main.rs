@@ -3,7 +3,6 @@ extern crate log;
 
 use clap::{App, Arg};
 
-use atg;
 use atg::gtf;
 use atg::models::TranscriptWrite;
 use atg::read_transcripts;
@@ -37,7 +36,7 @@ fn main() {
             Arg::with_name("input")
                 .short("i")
                 .long("input")
-                .value_name("/path/to/input/fike")
+                .value_name("/path/to/input/file")
                 .help("Path to input file")
                 .takes_value(true)
                 .default_value("/dev/stdin"),
@@ -46,7 +45,7 @@ fn main() {
             Arg::with_name("output")
                 .short("o")
                 .long("output")
-                .value_name("/path/to/output/fike")
+                .value_name("/path/to/output/file")
                 .help("Path to output file")
                 .takes_value(true)
                 .default_value("/dev/stdout"),
@@ -108,6 +107,15 @@ fn main() {
             }
             Err(err) => panic!("Error writing GTF: {}", err),
         },
+        "raw" => {
+            for t in transcripts {
+                println!("{}", t);
+                for exon in t.exons() {
+                    println!("{}", exon)
+                }
+            }
+            Ok(())
+        }
         _ => panic!("Invalid >>to<< parameter"),
     };
     debug!("Finshed writing output data");

@@ -3,6 +3,7 @@
 pub mod gtf;
 pub mod models;
 pub mod refgene;
+pub mod tests;
 pub mod utils;
 
 use crate::models::TranscriptRead;
