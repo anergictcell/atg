@@ -188,7 +188,7 @@ mod test_nm_001385228 {
         };
 
         assert_eq!(tr.len(), 1);
-        let t = tr.by_name("NM_001385228.1_2").unwrap();
+        let t = tr.by_name("NM_001385228.1_2")[0];
         assert_eq!(t.exons().len(), 9);
         assert_eq!(t.cds_start().unwrap(), 206105119);
         assert_eq!(t.cds_end().unwrap(), 206135359);
@@ -232,7 +232,7 @@ mod test_nm_201550 {
             _ => panic!("No transcripts could be read"),
         };
         assert_eq!(tr.len(), 1);
-        let t = tr.by_name("NM_201550.4").unwrap();
+        let t = tr.by_name("NM_201550.4")[0];
         assert_eq!(t.exons().len(), 1);
         assert_eq!(t.cds_start().unwrap(), 70003785);
         assert_eq!(t.cds_end().unwrap(), 70004618);
@@ -262,7 +262,7 @@ mod test_nm_001371720 {
             _ => panic!("No transcripts could be read")
         };
         assert_eq!(tr.len(), 1);
-        let t = tr.by_name("NM_001371720.1").unwrap();
+        let t = tr.by_name("NM_001371720.1")[0];
         assert_eq!(t.exons().len(), 8);
         assert_eq!(t.cds_start().unwrap(), 155158611);
         assert_eq!(t.cds_end().unwrap(), 155162634);
@@ -299,7 +299,7 @@ mod test_ighm {
             _ => panic!("No transcripts could be read"),
         };
         assert_eq!(tr.len(), 1);
-        let t = tr.by_name("id-IGHM").unwrap();
+        let t = tr.by_name("id-IGHM")[0];
         assert_eq!(t.exons().len(), 6);
         assert_eq!(t.cds_start().unwrap(), 106318298);
         assert_eq!(t.cds_end().unwrap(), 106322322);
@@ -334,7 +334,7 @@ mod tests {
             .unwrap();
 
         assert_eq!(
-            transcripts.by_name("NM_001365057.2").unwrap(),
+            transcripts.by_name("NM_001365057.2")[0],
             &transcripts::nm_001365057()
         )
     }
@@ -347,7 +347,7 @@ mod tests {
             .unwrap();
 
         assert_eq!(
-            transcripts.by_name("NM_001365408.1").unwrap(),
+            transcripts.by_name("NM_001365408.1")[0],
             &transcripts::nm_001365408()
         )
     }
@@ -360,7 +360,7 @@ mod tests {
             .unwrap();
 
         assert_eq!(
-            transcripts.by_name("NM_001371720.1").unwrap(),
+            transcripts.by_name("NM_001371720.1")[0],
             &transcripts::nm_001371720(true)
         )
     }
@@ -373,7 +373,7 @@ mod tests {
             .unwrap();
 
         assert_eq!(
-            transcripts.by_name("NM_201550.4").unwrap(),
+            transcripts.by_name("NM_201550.4")[0],
             &transcripts::nm_201550()
         )
     }
