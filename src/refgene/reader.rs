@@ -483,7 +483,7 @@ mod tests {
             .unwrap();
 
         assert_eq!(
-            transcripts.by_name("NM_001365057.2").unwrap(),
+            transcripts.by_name("NM_001365057.2")[0],
             &transcripts::nm_001365057()
         )
     }
@@ -496,7 +496,7 @@ mod tests {
             .unwrap();
 
         assert_eq!(
-            transcripts.by_name("NM_001365408.1").unwrap(),
+            transcripts.by_name("NM_001365408.1")[0],
             &transcripts::nm_001365408()
         )
     }
@@ -509,7 +509,7 @@ mod tests {
             .unwrap();
 
         assert_eq!(
-            transcripts.by_name("NM_001371720.1").unwrap(),
+            transcripts.by_name("NM_001371720.1")[0],
             &transcripts::nm_001371720(false)
         )
     }
@@ -522,7 +522,7 @@ mod tests {
             .unwrap();
 
         assert_eq!(
-            transcripts.by_name("NM_201550.4").unwrap(),
+            transcripts.by_name("NM_201550.4")[0],
             &transcripts::nm_201550()
         )
     }
