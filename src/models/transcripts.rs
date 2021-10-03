@@ -25,11 +25,10 @@ use crate::models::Transcript;
 /// assert_eq!(transcripts.len(), 1);
 ///
 /// assert_eq!(transcripts.by_name("NM_001203247.2").len(), 1);
-/// assert!(transcripts.by_gene("EZH2").is_some());
-/// assert_eq!(transcripts.by_gene("EZH2").unwrap().len(), 1);
+/// assert_eq!(transcripts.by_gene("EZH2").len(), 1);
 ///
 /// assert!(transcripts.by_name("Foo").is_empty());
-/// assert!(transcripts.by_gene("Bar").is_none());
+/// assert!(transcripts.by_gene("Bar").is_empty());
 /// ```
 pub struct Transcripts {
     list: Vec<Transcript>,
@@ -103,20 +102,19 @@ impl Transcripts {
     /// #     .build()
     /// #     .unwrap()
     /// # );
-    /// assert!(transcripts.by_gene("EZH2").is_some());
-    /// assert_eq!(transcripts.by_gene("EZH2").unwrap().len(), 1);
-    /// assert!(transcripts.by_gene("Invalid-name").is_none());
+    /// assert_eq!(transcripts.by_gene("EZH2").len(), 1);
+    /// assert!(transcripts.by_gene("Invalid-name").is_empty());
     /// ```
-    pub fn by_gene(&self, gene: &str) -> Option<Vec<&Transcript>> {
+    pub fn by_gene(&self, gene: &str) -> Vec<&Transcript> {
         match self.gene.get(gene) {
             Some(ids) => {
                 let mut res: Vec<&Transcript> = Vec::with_capacity(ids.len());
                 for id in ids {
                     res.push(&self.list[*id]);
                 }
-                Some(res)
+                res
             }
-            None => None,
+            None => vec![],
         }
     }
 
@@ -150,7 +148,7 @@ impl Transcripts {
     ///
     /// assert_eq!(transcripts.by_name("NM_001203247.2").len(), 1);
     /// assert_eq!(transcripts.by_name("NM_001203247.3").len(), 1);
-    /// assert_eq!(transcripts.by_gene("EZH2").unwrap().len(), 2);
+    /// assert_eq!(transcripts.by_gene("EZH2").len(), 2);
     /// ```
     pub fn push(&mut self, record: Transcript) {
         let idx = self.list.len();
