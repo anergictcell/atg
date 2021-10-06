@@ -82,7 +82,7 @@ impl Transcripts {
                     res.push(&self.list[*id]);
                 }
                 res
-            },
+            }
             None => vec![],
         }
     }

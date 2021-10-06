@@ -347,9 +347,102 @@ impl<'a> fmt::Display for Composer<'a> {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::Writer;
+    use crate::gtf::Reader;
+    use crate::models::{TranscriptRead, TranscriptWrite};
+    use crate::tests::transcripts;
+
+    #[test]
+    fn test_nm_001365057() {
+        let transcripts = vec![transcripts::nm_001365057()];
+        let mut writer = Writer::new(Vec::new());
+        let _ = writer.write_transcript_vec(&transcripts);
+
+        let output = writer.into_inner().unwrap();
+
+        assert!(output.len() > 10);
+
+        // Since it's a bit too complicated to compare GTF file directly
+        // this tests re-parses the GTF data back into a Transcript
+        // and compares this
+        let mut reader = Reader::new(&*output);
+        let read_transcripts = reader.transcripts().unwrap();
+
+        assert_eq!(
+            read_transcripts.by_name("NM_001365057.2")[0],
+            &transcripts[0]
+        );
+    }
+
+    #[test]
+    fn test_nm_001365408() {
+        let transcripts = vec![transcripts::nm_001365408()];
+        let mut writer = Writer::new(Vec::new());
+        let _ = writer.write_transcript_vec(&transcripts);
+
+        let output = writer.into_inner().unwrap();
+
+        assert!(output.len() > 10);
+
+        // Since it's a bit too complicated to compare GTF file directly
+        // this tests re-parses the GTF data back into a Transcript
+        // and compares this
+        let mut reader = Reader::new(&*output);
+        let read_transcripts = reader.transcripts().unwrap();
+
+        assert_eq!(
+            read_transcripts.by_name("NM_001365408.1")[0],
+            &transcripts[0]
+        );
+    }
+
+    #[test]
+    fn test_nm_001371720() {
+        let transcripts = vec![transcripts::nm_001371720(true)];
+        let mut writer = Writer::new(Vec::new());
+        let _ = writer.write_transcript_vec(&transcripts);
+
+        let output = writer.into_inner().unwrap();
+
+        assert!(output.len() > 10);
+
+        // Since it's a bit too complicated to compare GTF file directly
+        // this tests re-parses the GTF data back into a Transcript
+        // and compares this
+        let mut reader = Reader::new(&*output);
+        let read_transcripts = reader.transcripts().unwrap();
+
+        assert_eq!(
+            read_transcripts.by_name("NM_001371720.1")[0],
+            &transcripts[0]
+        );
+    }
+
+    #[test]
+    fn test_nm_201550() {
+        let transcripts = vec![transcripts::nm_201550()];
+        let mut writer = Writer::new(Vec::new());
+        let _ = writer.write_transcript_vec(&transcripts);
+
+        let output = writer.into_inner().unwrap();
+
+        assert!(output.len() > 10);
+
+        // Since it's a bit too complicated to compare GTF file directly
+        // this tests re-parses the GTF data back into a Transcript
+        // and compares this
+        let mut reader = Reader::new(&*output);
+        let read_transcripts = reader.transcripts().unwrap();
+
+        assert_eq!(read_transcripts.by_name("NM_201550.4")[0], &transcripts[0]);
+    }
+}
+
 /*
 
-Test cases:
+Missing test cases:
 
 Split stop codon
 --XXXU---AA--- +
