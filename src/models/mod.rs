@@ -45,16 +45,16 @@ mod tests {
 
     #[test]
     fn test_frame_addition() {
-        assert_eq!((Frame::Dot + Frame::Zero).unwrap(), Frame::Zero);
-        assert_eq!((Frame::Zero + Frame::Dot).unwrap(), Frame::Zero);
+        assert_eq!((Frame::None + Frame::Zero).unwrap(), Frame::Zero);
+        assert_eq!((Frame::Zero + Frame::None).unwrap(), Frame::Zero);
         assert_eq!((Frame::None + Frame::Zero).unwrap(), Frame::Zero);
         assert_eq!((Frame::Zero + Frame::None).unwrap(), Frame::Zero);
         assert_eq!((Frame::Zero + Frame::Zero).unwrap(), Frame::Zero);
 
         assert_eq!((Frame::None + Frame::One).unwrap(), Frame::One);
         assert_eq!((Frame::One + Frame::None).unwrap(), Frame::One);
-        assert_eq!((Frame::Dot + Frame::One).unwrap(), Frame::One);
-        assert_eq!((Frame::One + Frame::Dot).unwrap(), Frame::One);
+        assert_eq!((Frame::None + Frame::One).unwrap(), Frame::One);
+        assert_eq!((Frame::One + Frame::None).unwrap(), Frame::One);
         assert_eq!((Frame::Zero + Frame::One).unwrap(), Frame::One);
         assert_eq!((Frame::One + Frame::Zero).unwrap(), Frame::One);
 

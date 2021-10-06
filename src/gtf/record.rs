@@ -376,7 +376,7 @@ impl<'a> GtfRecordBuilder<'a> {
             end: None,
             score: None,
             strand: Strand::Unknown,
-            frame_offset: Frame::Dot,
+            frame_offset: Frame::None,
             attributes: None,
             comments: None,
         }
