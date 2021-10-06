@@ -53,6 +53,8 @@ pub fn nm_001365057() -> Transcript {
 }
 
 /// NM_001365408.1
+///
+/// The start codon is split across two exons.
 pub fn nm_001365408() -> Transcript {
     let mut transcript = TranscriptBuilder::new()
         .name("NM_001365408.1")

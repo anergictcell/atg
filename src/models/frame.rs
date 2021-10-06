@@ -23,8 +23,7 @@ use std::str::FromStr;
 /// ```
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Frame {
-    Dot,  // used for GTF file writing. Converts to .
-    None, // used for non-coding exons. Converts to -1
+    None, // used for non-coding exons. Converts to `-1` or `.`.
     Zero, // e.g. --ATG....
     One,  // e.g. --XATG....
     Two,  // e.g. --XXATG....
@@ -36,8 +35,7 @@ impl fmt::Display for Frame {
             f,
             "{}",
             match self {
-                Frame::Dot => ".",
-                Frame::None => "-1",
+                Frame::None => ".",
                 Frame::Zero => "0",
                 Frame::One => "1",
                 Frame::Two => "2",
@@ -187,7 +185,7 @@ impl FromStr for Frame {
             "0" => Ok(Frame::Zero),
             "1" => Ok(Frame::One),
             "2" => Ok(Frame::Two),
-            "." => Ok(Frame::Dot),
+            "." => Ok(Frame::None),
             _ => Err(format!("invalid frame indicator {}", s)),
         }
     }
