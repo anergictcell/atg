@@ -1,6 +1,8 @@
 use std::fmt;
 use std::str::FromStr;
 
+use log::debug;
+
 use crate::models::{Transcript, Transcripts};
 use crate::utils::errors::ReadWriteError;
 
@@ -108,9 +110,11 @@ pub trait TranscriptWrite {
     fn write_single_transcript(&mut self, transcript: &Transcript) -> Result<(), std::io::Error>;
 
     fn write_transcript_vec(&mut self, transcripts: &[Transcript]) -> Result<(), std::io::Error> {
+        debug!("Writing transcripts");
         for transcript in transcripts {
             self.writeln_single_transcript(transcript)?;
         }
+        debug!("Finished writing transcripts");
         Ok(())
     }
 

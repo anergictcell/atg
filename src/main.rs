@@ -3,6 +3,8 @@ extern crate log;
 
 use clap::{App, Arg};
 
+use std::process;
+
 use atg::gtf;
 use atg::models::TranscriptWrite;
 use atg::read_transcripts;
@@ -65,6 +67,8 @@ fn main() {
 
     let input_format = cli_commands.value_of("from").unwrap();
     let output_format = cli_commands.value_of("to").unwrap();
+
+    debug!("pid is {}", process::id());
 
     debug!("Parsed CLI arguments. Starting processing");
 

@@ -5,6 +5,8 @@ use std::io::{BufRead, BufReader};
 use std::path::Path;
 use std::str::FromStr;
 
+use log::debug;
+
 use crate::gtf::{GtfFeature, GtfRecord, GtfRecordsGroup};
 use crate::models::{Transcript, TranscriptRead, Transcripts};
 use crate::utils::errors::ParseGtfError;
@@ -162,7 +164,10 @@ impl<R: std::io::Read> TranscriptRead for Reader<R> {
             }
         }
 
+        debug!("Finished reading GTF input");
+
         let mut res = Transcripts::with_capacity(transcript_hashmap.len());
+
         for (_, gtf_transcript) in transcript_hashmap.drain() {
             match Transcript::try_from(gtf_transcript) {
                 Ok(transcript) => res.push(transcript),

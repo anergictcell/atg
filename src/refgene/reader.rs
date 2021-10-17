@@ -4,6 +4,8 @@ use std::io::{BufRead, BufReader};
 use std::path::Path;
 use std::str::FromStr;
 
+use log::debug;
+
 use crate::models::Transcripts;
 use crate::refgene::constants::*;
 use crate::utils::errors::ParseRefGeneError;
@@ -150,6 +152,8 @@ impl<R: std::io::Read> TranscriptRead for Reader<R> {
                 Err(x) => return Err(ReadWriteError::from(x)),
             }
         }
+
+        debug!("Finished reading RefGene input");
 
         Ok(res)
     }

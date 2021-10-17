@@ -134,7 +134,7 @@ impl<'a> Composer<'a> {
     pub fn new(transcript: &'a Transcript) -> Self {
         Self {
             transcript,
-            source: "transcripts",
+            source: "atg",
         }
     }
 
