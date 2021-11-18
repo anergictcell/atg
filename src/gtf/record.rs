@@ -3,7 +3,6 @@ use core::str::FromStr;
 use std::fmt;
 
 use crate::gtf::constants::*;
-use crate::gtf::utils::Attributes;
 use crate::models;
 use crate::models::{Exon, Frame, Strand};
 use crate::utils::errors::ParseGtfError;
@@ -90,19 +89,19 @@ pub struct GtfRecord {
     score: Option<f32>,
     strand: Strand,
     frame_offset: Frame,
-    attributes: Attributes,
-    comments: Option<String>,
+    gene: String,
+    transcript: String,
 }
 
 impl GtfRecord {
     /// The associated gene symbol
     pub fn gene(&self) -> &str {
-        self.attributes.gene()
+        &self.gene
     }
 
     /// The associated transcript name
     pub fn transcript(&self) -> &str {
-        self.attributes.transcript()
+        &self.transcript
     }
 
     /// The genomic seqname, in most cases the chromosome
@@ -136,11 +135,11 @@ impl GtfRecord {
     }
 
     fn attributes_to_string(&self) -> String {
-        let mut res: Vec<String> = vec![];
-        for attr in &self.attributes.all() {
-            res.push(format!("{} \"{}\";", attr.0, attr.1))
-        }
-        res.join(" ")
+        format!(
+            "gene_id \"{}\"; transcript_id \"{}\";",
+            self.gene(),
+            self.transcript()
+        )
     }
 
     /// Modifies an [`Exon`](crate::models::Exon) to include the [`GtfRecord`]
@@ -196,11 +195,8 @@ impl GtfRecord {
 impl fmt::Display for GtfRecord {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut columns: Vec<String> = vec![
-            "".to_string();
-            match self.comments {
-                Some(_) => MAX_GTF_COLUMNS,
-                None => MIN_GTF_COLUMNS,
-            }
+            String::new();
+            MIN_GTF_COLUMNS
         ];
 
         columns[CHROMOSOME_COL] = self.chrom.to_string();
@@ -215,9 +211,6 @@ impl fmt::Display for GtfRecord {
         columns[STRAND_COL] = self.strand.to_string();
         columns[FRAME_COL] = self.frame_offset.to_string();
         columns[ATTRIBUTES_COL] = self.attributes_to_string();
-        if let Some(x) = &self.comments {
-            columns[COMMENTS_COL] = x.to_string();
-        }
 
         write!(f, "{}", columns.join("\t"))
     }
@@ -231,15 +224,19 @@ impl FromStr for GtfRecord {
         if cols.len() < MIN_GTF_COLUMNS || cols.len() > MAX_GTF_COLUMNS {
             return Err(ParseGtfError {
                 message: format!(
-                    "Wrong number of columns in GTF line. Expected {}-{}, received {}",
+                    "Wrong number of columns in GTF line. Expected {}-{}, received {}: {}",
                     MIN_GTF_COLUMNS,
                     MAX_GTF_COLUMNS,
-                    cols.len()
+                    cols.len(),
+                    s
                 ),
             });
         };
 
+        let (gene, transcript) = parse_attributes(cols[ATTRIBUTES_COL])?;
         let res = GtfRecord {
+            gene,
+            transcript,
             chrom: models::parse_chrom(cols[CHROMOSOME_COL]),
             source: cols[SOURCE_COL].to_string(),
             feature: match GtfFeature::from_str(cols[FEATURE_COL]) {
@@ -278,21 +275,64 @@ impl FromStr for GtfRecord {
                 Ok(x) => x,
                 Err(x) => return Err(ParseGtfError { message: x }),
             },
-            attributes: match Attributes::from_str(cols[ATTRIBUTES_COL]) {
-                Ok(x) => x,
-                Err(err) => {
-                    return Err(ParseGtfError::from_chain(
-                        err,
-                        &format!("Error in line:\n{}\n", s),
-                    ))
-                }
-            },
-            comments: match cols.len() {
-                MAX_GTF_COLUMNS => Some(cols[COMMENTS_COL].to_string()),
-                _ => None,
-            },
         };
         Ok(res)
+    }
+}
+
+fn parse_attributes(attrs: &str) -> Result<(String, String), ParseGtfError> {
+    let mut gene: Option<String> = None;
+    let mut transcript: Option<String> = None;
+
+    for attr in attrs.trim_end_matches(';').split(';') {
+        match parse_attribute(attr) {
+            Ok(("gene_id", value)) => gene = Some(value.to_string()),
+            Ok(("transcript_id", value)) => transcript = Some(value.to_string()),
+            Ok((_, _)) => {} // ignore all other attributes
+            Err(err) => {
+                return Err(ParseGtfError::from_chain(
+                    err,
+                    &format!(
+                        "Unable to parse the attribute column\n\n>>>{}<<<\n\n",
+                        attrs
+                    ),
+                ));
+            }
+        }
+    }
+    match (gene, transcript) {
+        (Some(gene), Some(transcript)) => Ok((gene, transcript)),
+        (None, None) => {
+            return Err(ParseGtfError {
+                message: format!("missing gene_id and transcript_id in {}", attrs),
+            })
+        }
+        (None, Some(_)) => {
+            return Err(ParseGtfError {
+                message: format!("missing gene_id in {}", attrs),
+            })
+        }
+        (Some(_), None) => {
+            return Err(ParseGtfError {
+                message: format!("missing transcript_id in {}", attrs),
+            })
+        }
+    }
+}
+
+fn parse_attribute(attr: &str) -> Result<(&str, &str), ParseGtfError> {
+    let items: Vec<&str> = attr.trim().splitn(2, ' ').collect();
+    match items.len() {
+        2 => Ok((
+            items[0],
+            items[1].trim_end_matches('\"').trim_start_matches('\"'),
+        )),
+        _ => Err(ParseGtfError {
+            message: format!(
+                "Unable to parse the attribute\n\n{}\nPlease check your GTF input.",
+                attr
+            ),
+        }),
     }
 }
 
@@ -326,7 +366,7 @@ impl From<GtfRecord> for models::Exon {
 /// # Examples
 ///
 /// ```rust
-/// use atg::gtf::{Attributes, GtfFeature, GtfRecordBuilder};
+/// use atg::gtf::{GtfFeature, GtfRecordBuilder};
 /// use atg::models::{Frame, Strand};
 /// use std::str::FromStr;
 ///
@@ -341,13 +381,16 @@ impl From<GtfRecord> for models::Exon {
 ///     // score_option(Some(1.4))
 ///     .strand(Strand::Plus)
 ///     .frame_offset(Frame::Zero)
-///     .attributes(Attributes::from_str("gene_id Foo; transcript_id Bar").unwrap())
+///     .gene("Foo")
+///     .transcript("Bar")
 ///     .build()
 ///     .unwrap();
 ///
 /// assert_eq!(record.chrom(), "chr1");
 /// ```
 pub struct GtfRecordBuilder<'a> {
+    gene: Option<&'a str>,
+    transcript: Option<&'a str>,
     chrom: Option<&'a str>,
     source: Option<&'a str>,
     feature: Option<GtfFeature>,
@@ -356,8 +399,6 @@ pub struct GtfRecordBuilder<'a> {
     score: Option<f32>,
     strand: Strand,
     frame_offset: Frame,
-    attributes: Option<Attributes>,
-    comments: Option<String>,
 }
 
 impl<'a> Default for GtfRecordBuilder<'a> {
@@ -369,6 +410,8 @@ impl<'a> Default for GtfRecordBuilder<'a> {
 impl<'a> GtfRecordBuilder<'a> {
     pub fn new() -> Self {
         Self {
+            gene: None,
+            transcript: None,
             chrom: None,
             source: None,
             feature: None,
@@ -377,8 +420,6 @@ impl<'a> GtfRecordBuilder<'a> {
             score: None,
             strand: Strand::Unknown,
             frame_offset: Frame::None,
-            attributes: None,
-            comments: None,
         }
     }
 
@@ -420,20 +461,24 @@ impl<'a> GtfRecordBuilder<'a> {
         self.score = score;
         self
     }
+
     pub fn strand(&mut self, strand: Strand) -> &mut Self {
         self.strand = strand;
         self
     }
+
     pub fn frame_offset(&mut self, frame_offset: Frame) -> &mut Self {
         self.frame_offset = frame_offset;
         self
     }
-    pub fn attributes(&mut self, attributes: Attributes) -> &mut Self {
-        self.attributes = Some(attributes);
+
+    pub fn gene(&mut self, gene: &'a str) -> &mut Self {
+        self.gene = Some(gene);
         self
     }
-    pub fn comments(&mut self, comments: &'a str) -> &mut Self {
-        self.comments = Some(comments.to_string());
+
+    pub fn transcript(&mut self, transcript: &'a str) -> &mut Self {
+        self.transcript = Some(transcript);
         self
     }
 
@@ -463,12 +508,45 @@ impl<'a> GtfRecordBuilder<'a> {
             score: self.score,
             strand: self.strand,
             frame_offset: self.frame_offset,
-            attributes: match self.attributes.take() {
-                Some(x) => x,
-                None => return Err("Missing attributes".to_string()),
+            gene: match self.gene {
+                Some(x) => x.to_string(),
+                None => return Err("Missing gene".to_string()),
             },
-            comments: self.comments.take(),
+            transcript: match self.transcript {
+                Some(x) => x.to_string(),
+                None => return Err("Missing transcript".to_string()),
+            },
         };
         Ok(r)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_attributes_parsing() {
+        let col = "gene_id \"ZBTB16\"; transcript_id \"NM_001354751.2\"; exon_number \"2\"; exon_id \"NM_001354751.2.2\"; gene_name \"ZBTB16\";";
+        let attr = parse_attributes(col).unwrap();
+        assert_eq!(attr.0, "ZBTB16");
+        assert_eq!(attr.1, "NM_001354751.2");
+
+        let col = "gene_id \"ZBTB16\"; transcript_id \"NM_001354752.1\"; gene_name \"ZBTB16\";";
+        let attr = parse_attributes(col).unwrap();
+        assert_eq!(attr.0, "ZBTB16");
+        assert_eq!(attr.1, "NM_001354752.1");
+    }
+    // let line =  "chr11\tncbiRefSeq.2021-05-17\texon\t113933933\t113935290\t.\t+\t.\tgene_id \"ZBTB16\"; transcript_id \"NM_001354751.2\"; exon_number \"2\"; exon_id \"NM_001354751.2.2\"; gene_name \"ZBTB16\";"
+
+    #[test]
+    fn test_single_attribute_parsing() {
+        let res = parse_attribute("gene_id \"ZBTB16\"").unwrap();
+        assert_eq!(res.0, "gene_id");
+        assert_eq!(res.1, "ZBTB16");
+
+        let res = parse_attribute("transcript_id \"NM_001354751.2\"").unwrap();
+        assert_eq!(res.0, "transcript_id");
+        assert_eq!(res.1, "NM_001354751.2");
     }
 }
