@@ -17,19 +17,17 @@
 //! | score | Yes | float | The score field indicates a degree of confidence in the feature's existence and coordinates |
 //! | strand | Yes | enum("+", "-") | The strand of the feature |
 //! | frame | Yes | enum(0, 1, 2) | The frame-offset of the feature |
-//! | attributes | Yes | str | key=value list (separated by ; ) **Must contain gene_id and transcript_id** |
-//! | comments  | Optional | str | Additional comments about the feature |
+//! | attributes | Yes | str | key=value list (separated by ; ) **Must contain gene_id and transcript_id** (all other fields will be ignored)|
+//! | comments  | Optional | str | Additional comments about the feature (this column is ignored)|
 //!
 
 mod constants;
 mod reader;
 mod record;
 mod transcript;
-mod utils;
 mod writer;
 
 pub use crate::gtf::reader::Reader;
 pub use crate::gtf::record::{GtfFeature, GtfRecord, GtfRecordBuilder};
 use crate::gtf::transcript::GtfRecordsGroup;
-pub use crate::gtf::utils::Attributes;
 pub use crate::gtf::writer::Writer;

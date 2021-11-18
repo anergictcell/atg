@@ -4,7 +4,6 @@ use std::io::{BufWriter, Write};
 use std::path::Path;
 
 use crate::gtf::record::{GtfFeature, GtfRecord, GtfRecordBuilder};
-use crate::gtf::utils::Attributes;
 
 use crate::models::TranscriptWrite;
 use crate::models::{CdsStat, Exon, Frame, Strand, Transcript};
@@ -198,7 +197,8 @@ impl<'a> Composer<'a> {
             .score_option(self.transcript.score())
             .strand(self.transcript.strand())
             .frame_offset(Frame::None)
-            .attributes(Attributes::from_transcript(self.transcript))
+            .gene(self.transcript.gene())
+            .transcript(self.transcript.name())
             .build()
             .unwrap()
     }
@@ -213,7 +213,8 @@ impl<'a> Composer<'a> {
             .score_option(self.transcript.score())
             .strand(self.transcript.strand())
             .frame_offset(Frame::None)
-            .attributes(Attributes::from_transcript(self.transcript))
+            .gene(self.transcript.gene())
+            .transcript(self.transcript.name())
             .build()
             .unwrap()
     }
@@ -252,7 +253,8 @@ impl<'a> Composer<'a> {
                 .score_option(self.transcript.score())
                 .strand(self.transcript.strand())
                 .frame_offset(*exon.frame_offset())
-                .attributes(Attributes::from_transcript(self.transcript))
+                .gene(self.transcript.gene())
+                .transcript(self.transcript.name())
                 .build()
                 .unwrap(),
         )
@@ -272,7 +274,8 @@ impl<'a> Composer<'a> {
                     .score_option(self.transcript.score())
                     .strand(self.transcript.strand())
                     .frame_offset(exon.2)
-                    .attributes(Attributes::from_transcript(self.transcript))
+                    .gene(self.transcript.gene())
+                    .transcript(self.transcript.name())
                     .build()
                     .unwrap()
             })
@@ -293,7 +296,8 @@ impl<'a> Composer<'a> {
                     .score_option(self.transcript.score())
                     .strand(self.transcript.strand())
                     .frame_offset(exon.2)
-                    .attributes(Attributes::from_transcript(self.transcript))
+                    .gene(self.transcript.gene())
+                    .transcript(self.transcript.name())
                     .build()
                     .unwrap()
             })
@@ -327,7 +331,8 @@ impl<'a> Composer<'a> {
             .score_option(self.transcript.score())
             .strand(self.transcript.strand())
             .frame_offset(Frame::None)
-            .attributes(Attributes::from_transcript(self.transcript))
+            .gene(self.transcript.gene())
+            .transcript(self.transcript.name())
             .build()
             .unwrap()
     }

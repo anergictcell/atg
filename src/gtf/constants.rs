@@ -10,4 +10,3 @@ pub const SCORE_COL: usize = 5;
 pub const STRAND_COL: usize = 6;
 pub const FRAME_COL: usize = 7;
 pub const ATTRIBUTES_COL: usize = 8;
-pub const COMMENTS_COL: usize = 9;
