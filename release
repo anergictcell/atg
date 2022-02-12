@@ -39,9 +39,12 @@ git push --follow-tags
 
 echo -ne "Do you want to build the binaries now? [y/n] "
 confirmation
-cargo build --release
+cargo build --release --target=aarch64-apple-darwin
+cp target/aarch64-apple-darwin/release/atg target/atg-${VERSION}-aarch64-apple-darwin
 cargo build --release --target=x86_64-unknown-linux-gnu
+cp target/x86_64-unknown-linux-gnu/release/atg target/atg-${VERSION}-x86_64-unknown-linux-gnu
 cargo build --release --target=x86_64-unknown-linux-musl
+cp target/x86_64-unknown-linux-musl/release/atg target/atg-${VERSION}-x86_64-unknown-linux-musl
 
 echo "You can now merge release/${VERSION} into main, create a new release and upload the binaries"
 
