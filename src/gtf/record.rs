@@ -194,10 +194,7 @@ impl GtfRecord {
 
 impl fmt::Display for GtfRecord {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let mut columns: Vec<String> = vec![
-            String::new();
-            MIN_GTF_COLUMNS
-        ];
+        let mut columns: Vec<String> = vec![String::new(); MIN_GTF_COLUMNS];
 
         columns[CHROMOSOME_COL] = self.chrom.to_string();
         columns[SOURCE_COL] = self.source.to_string();

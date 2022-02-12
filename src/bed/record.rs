@@ -54,7 +54,7 @@ impl From<&Transcript> for BedLine {
             start: transcript.tx_start() - 1,
             end: transcript.tx_end(),
             thick_start: transcript.cds_start().map(|s| s - 1),
-            thick_end: transcript.cds_end().map(|s| s),
+            thick_end: transcript.cds_end(),
             name: Some(format!("{}:{}", transcript.gene(), transcript.name())),
             score: transcript.score(),
             strand: Some(transcript.strand()),

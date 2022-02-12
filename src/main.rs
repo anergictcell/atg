@@ -113,9 +113,7 @@ fn main() {
             Err(err) => panic!("Error writing GTF: {}", err),
         },
         "bed" => match bed::Writer::from_file(output_fd) {
-            Ok(mut writer) => {
-                writer.write_transcripts(&transcripts)
-            }
+            Ok(mut writer) => writer.write_transcripts(&transcripts),
             Err(err) => panic!("Error writing GTF: {}", err),
         },
         "raw" => {
@@ -126,7 +124,7 @@ fn main() {
                 }
             }
             Ok(())
-        },
+        }
         _ => panic!("Invalid >>to<< parameter"),
     };
     debug!("Finshed writing output data");
