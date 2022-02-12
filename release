@@ -1,0 +1,50 @@
+#!/bin/bash
+
+VERSION=$1
+
+confirmation() {
+    read confirm
+    if [ "$confirm" != "y" ]
+    then
+      echo "Aborting";
+      exit 1
+    fi
+}
+
+echo -ne "Preparing for release ${VERSION}. Is this correct? [y/n] "
+confirmation
+
+echo "Creating release branch"
+git checkout main && \
+git pull && \
+git checkout -b release/${VERSION} && \
+git push -u origin release/${VERSION}
+
+echo -ne "Did you finish merging all features into 'release/${VERSION}'? [y/n] "
+confirmation
+git checkout release/${VERSION} && git pull
+
+echo "Running linter and unittests"
+cargo clippy && \
+cargo fmt && \
+cargo test
+
+echo "Updating version number"
+sed -i .bck "s/^version =.*$/version = \"${VERSION}\"/" ./Cargo.toml
+cargo build
+
+git commit -am "Release ${VERSION}"
+git tag ${VERSION}
+git push --follow-tags
+
+echo -ne "Do you want to build the binaries now? [y/n] "
+confirmation
+cargo build --release
+cargo build --release --target=x86_64-unknown-linux-gnu
+cargo build --release --target=x86_64-unknown-linux-musl
+
+echo "You can now merge release/${VERSION} into main, create a new release and upload the binaries"
+
+echo -ne "Do you want to publish atg to crates.io now? [y/n] "
+confirmation
+cargo publish

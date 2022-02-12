@@ -100,6 +100,52 @@ impl From<&str> for ParseRefGeneError {
     }
 }
 
+pub struct ParseBedError {
+    pub message: String,
+}
+
+impl ParseBedError {
+    pub fn new(message: &str) -> ParseBedError {
+        ParseBedError {
+            message: message.to_string(),
+        }
+    }
+}
+
+impl Error for ParseBedError {}
+
+impl fmt::Display for ParseBedError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        // user-facing error
+        write!(
+            f,
+            "An error occurred while parsing the RefGene input. Please check your input data\n{}",
+            self.message
+        )
+    }
+}
+
+impl fmt::Debug for ParseBedError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        // developer-facing error
+        write!(f, "{{ file: {}, line: {} }}", file!(), line!())
+    }
+}
+
+impl From<String> for ParseBedError {
+    fn from(e: String) -> ParseBedError {
+        ParseBedError { message: e }
+    }
+}
+
+impl From<&str> for ParseBedError {
+    fn from(e: &str) -> ParseBedError {
+        ParseBedError {
+            message: e.to_string(),
+        }
+    }
+}
+
 pub struct MissingCDSError;
 
 impl Error for MissingCDSError {}
@@ -133,7 +179,7 @@ impl BuildTranscriptError {
 
 impl fmt::Display for BuildTranscriptError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Unable to build the transcript")
+        write!(f, "Unable to build the transcript: {}", self.message)
     }
 }
 
