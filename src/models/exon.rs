@@ -185,7 +185,7 @@ impl fmt::Display for Exon {
             self.end,
             self.cds_start.unwrap_or(0),
             self.cds_end.unwrap_or(0),
-            self.frame_offset.to_string()
+            self.frame_offset
         )
     }
 }
