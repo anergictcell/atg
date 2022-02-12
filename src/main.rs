@@ -5,6 +5,7 @@ use clap::{App, Arg};
 
 use std::process;
 
+use atg::bed;
 use atg::gtf;
 use atg::models::TranscriptWrite;
 use atg::read_transcripts;
@@ -29,7 +30,7 @@ fn main() {
             Arg::with_name("to")
                 .short("t")
                 .long("to")
-                .value_name("refgene|gtf")
+                .value_name("refgene|gtf|bed")
                 .help("Defines the output data format")
                 .takes_value(true)
                 .required(true),
@@ -106,9 +107,13 @@ fn main() {
         },
         "gtf" => match gtf::Writer::from_file(output_fd) {
             Ok(mut writer) => {
-                writer.set_source("ncbiRefSeq.2021-05-17");
+                writer.set_source("atg");
                 writer.write_transcripts(&transcripts)
             }
+            Err(err) => panic!("Error writing GTF: {}", err),
+        },
+        "bed" => match bed::Writer::from_file(output_fd) {
+            Ok(mut writer) => writer.write_transcripts(&transcripts),
             Err(err) => panic!("Error writing GTF: {}", err),
         },
         "raw" => {
