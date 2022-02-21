@@ -1,6 +1,8 @@
 use std::cmp::PartialEq;
 use std::fmt;
 
+use serde::{Serialize, Deserialize};
+
 use crate::models::codon::Codon;
 use crate::models::utils::{CdsStat, Strand};
 use crate::models::{Exon, Frame};
@@ -26,7 +28,7 @@ pub type Coordinate<'a> = (&'a str, u32, u32);
 /// Transcripts are directional and the direction is encoded through the [strand](crate::models::Strand).
 ///
 /// `Transcript`s should be created using `TranscriptBuilder`
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Transcript {
     bin: Option<u16>,
     name: String,

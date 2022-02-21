@@ -1,5 +1,5 @@
 use std::fmt;
-
+use serde::{Serialize, Deserialize};
 use crate::models::Frame;
 
 /// Represents a genomic exon.
@@ -20,7 +20,7 @@ use crate::models::Frame;
 ///
 /// assert_eq!(coding_exon.is_coding(), true);
 /// ```
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Exon {
     // u32 max value is 4,294,967,295 => This is sufficient for every human chromosome.
     // If you are working with species with chromsomes with more than 4 Mb per chromosome
