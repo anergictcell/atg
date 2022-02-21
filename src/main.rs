@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate log;
 
-use clap::{App, Arg};
+use clap::{App, Arg, ArgMatches};
 
 use std::process;
 
@@ -11,8 +11,8 @@ use atg::models::TranscriptWrite;
 use atg::read_transcripts;
 use atg::refgene;
 
-fn main() {
-    let cli_commands = App::new(env!("CARGO_PKG_NAME"))
+fn parse_cli_args() -> ArgMatches<'static> {
+    App::new(env!("CARGO_PKG_NAME"))
         .version(atg::VERSION)
         .author(env!("CARGO_PKG_AUTHORS"))
         .about("Convert transcript data from and to different file formats")
@@ -21,7 +21,9 @@ fn main() {
             Arg::with_name("from")
                 .short("f")
                 .long("from")
-                .value_name("refgene|gtf")
+                .possible_values(&["refgene", "gtf"])
+                .case_insensitive(true)
+                .value_name("file-format")
                 .help("Defines the input data format")
                 .takes_value(true)
                 .required(true),
@@ -30,7 +32,9 @@ fn main() {
             Arg::with_name("to")
                 .short("t")
                 .long("to")
-                .value_name("refgene|gtf|bed")
+                .possible_values(&["refgene", "gtf", "bed", "fasta"])
+                .case_insensitive(true)
+                .value_name("file-format")
                 .help("Defines the output data format")
                 .takes_value(true)
                 .required(true),
@@ -54,12 +58,32 @@ fn main() {
                 .default_value("/dev/stdout"),
         )
         .arg(
+            Arg::with_name("fasta_format")
+                .long("fasta-format")
+                .possible_values(&["transcript", "exons", "cds"])
+                .value_name("format")
+                .help(
+                    "Which part of the transcript to translate. \
+                       (This open is only needed when generating \
+                       fasta output)",
+                )
+                .next_line_help(true)
+                .display_order(1000)
+                .takes_value(true)
+                .default_value("cds")
+                .required_if("to", "fasta"),
+        )
+        .arg(
             Arg::with_name("v")
                 .short("v")
                 .multiple(true)
                 .help("Sets the level of verbosity"),
         )
-        .get_matches();
+        .get_matches()
+}
+
+fn main() {
+    let cli_commands = parse_cli_args();
 
     loggerv::init_with_verbosity(cli_commands.occurrences_of("v")).unwrap();
 
@@ -68,6 +92,7 @@ fn main() {
 
     let input_format = cli_commands.value_of("from").unwrap();
     let output_format = cli_commands.value_of("to").unwrap();
+    let fasta_format = cli_commands.value_of("fasta_format").unwrap();
 
     debug!("pid is {}", process::id());
 
@@ -116,6 +141,13 @@ fn main() {
             Ok(mut writer) => writer.write_transcripts(&transcripts),
             Err(err) => panic!("Error writing GTF: {}", err),
         },
+        "fasta" => {
+            println!(
+                "Fasta ourput is not yet implemented. Target {}",
+                fasta_format
+            );
+            Ok(())
+        }
         "raw" => {
             for t in transcripts {
                 println!("{}", t);

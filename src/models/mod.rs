@@ -4,6 +4,7 @@
 mod codon;
 mod exon;
 mod frame;
+pub mod sequence;
 mod transcript;
 mod transcripts;
 mod utils;
