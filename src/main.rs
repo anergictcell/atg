@@ -1,11 +1,14 @@
 #[macro_use]
 extern crate log;
-
-use clap::{App, Arg, ArgMatches};
-
 use std::process;
 
+use atg::models::Transcripts;
+use atg::utils::errors::AtgError;
+use atg::utils::fastareader::FastaReader;
+use clap::{App, Arg, ArgMatches};
+
 use atg::bed;
+use atg::fasta;
 use atg::gtf;
 use atg::models::TranscriptWrite;
 use atg::read_transcripts;
@@ -15,7 +18,14 @@ fn parse_cli_args() -> ArgMatches<'static> {
     App::new(env!("CARGO_PKG_NAME"))
         .version(atg::VERSION)
         .author(env!("CARGO_PKG_AUTHORS"))
-        .about("Convert transcript data from and to different file formats")
+        .about(
+            "Convert transcript data from and to different file formats\n\n\
+            ATG supports the following formats:\n\
+              * refgene - RefGene format (one transcript per line)\n\
+              * gtf     - GTF2.2 format\n\
+              * bed     - Bedfile (one transcript per line)\n\
+              * fasta   - Nucleotide sequence. There are multiple formatting options available"
+        )
         .after_help(env!("CARGO_PKG_HOMEPAGE"))
         .arg(
             Arg::with_name("from")
@@ -24,7 +34,7 @@ fn parse_cli_args() -> ArgMatches<'static> {
                 .possible_values(&["refgene", "gtf"])
                 .case_insensitive(true)
                 .value_name("file-format")
-                .help("Defines the input data format")
+                .help("Data format of input file")
                 .takes_value(true)
                 .required(true),
         )
@@ -32,10 +42,10 @@ fn parse_cli_args() -> ArgMatches<'static> {
             Arg::with_name("to")
                 .short("t")
                 .long("to")
-                .possible_values(&["refgene", "gtf", "bed", "fasta"])
+                .possible_values(&["refgene", "gtf", "bed", "fasta", "fasta-split", "raw"])
                 .case_insensitive(true)
                 .value_name("file-format")
-                .help("Defines the output data format")
+                .help("data format of the output")
                 .takes_value(true)
                 .required(true),
         )
@@ -58,6 +68,16 @@ fn parse_cli_args() -> ArgMatches<'static> {
                 .default_value("/dev/stdout"),
         )
         .arg(
+            Arg::with_name("fasta_reference")
+                .long("reference")
+                .short("-r")
+                .value_name("/path/to/reference.fasta")
+                .help("Path to reference genome fasta file. (required with >>fasta<< and >>fasta-split<<)")
+                .display_order(1000)
+                .takes_value(true)
+                .required_if("to", "fasta"),
+        )
+        .arg(
             Arg::with_name("fasta_format")
                 .long("fasta-format")
                 .possible_values(&["transcript", "exons", "cds"])
@@ -67,11 +87,13 @@ fn parse_cli_args() -> ArgMatches<'static> {
                        (This open is only needed when generating \
                        fasta output)",
                 )
-                .next_line_help(true)
-                .display_order(1000)
+                .display_order(1001)
                 .takes_value(true)
                 .default_value("cds")
-                .required_if("to", "fasta"),
+                .required_ifs(&[
+                    ("to", "fasta"),
+                    ("to", "fasta-split")
+                ]),
         )
         .arg(
             Arg::with_name("v")
@@ -80,6 +102,87 @@ fn parse_cli_args() -> ArgMatches<'static> {
                 .help("Sets the level of verbosity"),
         )
         .get_matches()
+}
+
+fn read_input_file(input_format: &str, input_fd: &str) -> Result<Transcripts, AtgError> {
+    debug!("Reading input data");
+
+    let transcripts = match input_format {
+        "refgene" => read_transcripts(refgene::Reader::from_file(input_fd))?,
+        "gtf" => read_transcripts(gtf::Reader::from_file(input_fd))?,
+        _ => {
+            return Err(AtgError::from(format!(
+                "Invalid file-format: {}",
+                input_format
+            )))
+        }
+    };
+
+    debug!(
+        "Finished parsing input data. Found {} transcripts",
+        transcripts.len()
+    );
+    Ok(transcripts)
+}
+
+fn write_output(
+    output_format: &str,
+    output_fd: &str,
+    fasta_reference: &str,
+    fasta_format: &str,
+    transcripts: Transcripts,
+) -> Result<(), AtgError> {
+    let _ = match output_format {
+        "refgene" => {
+            let mut writer = refgene::Writer::from_file(output_fd)?;
+            writer.write_transcripts(&transcripts)?
+        }
+        "gtf" => {
+            let mut writer = gtf::Writer::from_file(output_fd)?;
+            writer.set_source("atg");
+            writer.write_transcripts(&transcripts)?
+        }
+        "bed" => {
+            let mut writer = bed::Writer::from_file(output_fd)?;
+            writer.write_transcripts(&transcripts)?
+        }
+        "fasta" => {
+            let mut writer = fasta::Writer::from_file(output_fd)?;
+            writer.fasta_reader(FastaReader::from_file(fasta_reference)?);
+            writer.fasta_format(fasta_format);
+            writer.write_transcripts(&transcripts)?
+        }
+        "fasta-split" => {
+            let outdir = std::path::Path::new(output_fd);
+            if !outdir.is_dir() {
+                return Err(AtgError::new(
+                    "fasta-split requires a directory as --output option",
+                ));
+            }
+            for tx in transcripts {
+                let outfile = outdir.join(format!("{}.fasta", tx.name()));
+                let mut writer = fasta::Writer::from_file(
+                    outfile
+                        .to_str()
+                        .expect("ATG does not support non-UTF8 filename"),
+                )?;
+                writer.fasta_reader(FastaReader::from_file(fasta_reference)?);
+                writer.fasta_format(fasta_format);
+                writer.writeln_single_transcript(&tx)?;
+            }
+        }
+        "raw" => {
+            for t in transcripts {
+                println!("{}", t);
+                for exon in t.exons() {
+                    println!("{}", exon)
+                }
+            }
+        }
+        _ => return Err(AtgError::new("Invalid >>to<< parameter")),
+    };
+
+    Ok(())
 }
 
 fn main() {
@@ -93,10 +196,7 @@ fn main() {
     let input_format = cli_commands.value_of("from").unwrap();
     let output_format = cli_commands.value_of("to").unwrap();
     let fasta_format = cli_commands.value_of("fasta_format").unwrap();
-
-    debug!("pid is {}", process::id());
-
-    debug!("Parsed CLI arguments. Starting processing");
+    let fasta_reference = cli_commands.value_of("fasta_reference").unwrap();
 
     trace!("Parameters:");
     trace!(
@@ -110,54 +210,27 @@ fn main() {
         output_fd
     );
 
-    debug!("Reading input data");
-
-    let transcripts = match input_format {
-        "refgene" => read_transcripts(refgene::Reader::from_file(input_fd)),
-        "gtf" => read_transcripts(gtf::Reader::from_file(input_fd)),
-        _ => panic!("Invalid command"),
-    }
-    .unwrap_or_else(|e| panic!("Error parsing the input data: {}", e));
-
-    debug!(
-        "Finished parsing input data. Found {} transcripts",
-        transcripts.len()
-    );
+    let transcripts = match read_input_file(input_format, input_fd) {
+        Ok(x) => x,
+        Err(err) => {
+            println!("{}", err);
+            process::exit(1);
+        }
+    };
 
     debug!("Writing ouput data");
-    let _res = match output_format {
-        "refgene" => match refgene::Writer::from_file(output_fd) {
-            Ok(mut writer) => writer.write_transcripts(&transcripts),
-            Err(err) => panic!("Error writing GTF: {}", err),
-        },
-        "gtf" => match gtf::Writer::from_file(output_fd) {
-            Ok(mut writer) => {
-                writer.set_source("atg");
-                writer.write_transcripts(&transcripts)
-            }
-            Err(err) => panic!("Error writing GTF: {}", err),
-        },
-        "bed" => match bed::Writer::from_file(output_fd) {
-            Ok(mut writer) => writer.write_transcripts(&transcripts),
-            Err(err) => panic!("Error writing GTF: {}", err),
-        },
-        "fasta" => {
-            println!(
-                "Fasta ourput is not yet implemented. Target {}",
-                fasta_format
-            );
-            Ok(())
+    match write_output(
+        output_format,
+        output_fd,
+        fasta_reference,
+        fasta_format,
+        transcripts,
+    ) {
+        Ok(_) => debug!("Finshed writing output data"),
+        Err(err) => {
+            println!("\x1b[1;31mError:\x1b[0m {}", err);
+            println!("\nPlease check `atg --help` for more options\n");
+            process::exit(1);
         }
-        "raw" => {
-            for t in transcripts {
-                println!("{}", t);
-                for exon in t.exons() {
-                    println!("{}", exon)
-                }
-            }
-            Ok(())
-        }
-        _ => panic!("Invalid >>to<< parameter"),
-    };
-    debug!("Finshed writing output data");
+    }
 }

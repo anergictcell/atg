@@ -2,14 +2,74 @@ use std::error::Error;
 use std::fmt;
 use std::num::ParseIntError;
 
+use crate::utils::fastareader::FastaError;
+
+pub struct AtgError {
+    message: String,
+}
+
+impl Error for AtgError {}
+
+impl AtgError {
+    pub fn new<S: fmt::Display>(s: S) -> Self {
+        Self {
+            message: s.to_string(),
+        }
+    }
+}
+
+impl fmt::Display for AtgError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        // user-facing error
+        write!(f, "{}", self.message)
+    }
+}
+
+impl fmt::Debug for AtgError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        // developer-facing error
+        write!(f, "{{ file: {}, line: {} }}", file!(), line!())
+    }
+}
+
+impl From<std::io::Error> for AtgError {
+    fn from(e: std::io::Error) -> AtgError {
+        AtgError {
+            message: format!("IO error: {}", e),
+        }
+    }
+}
+
+impl From<ReadWriteError> for AtgError {
+    fn from(e: ReadWriteError) -> AtgError {
+        AtgError {
+            message: format!("ReadWrite error: {}", e),
+        }
+    }
+}
+
+impl From<FastaError> for AtgError {
+    fn from(e: FastaError) -> AtgError {
+        AtgError {
+            message: format!("Fasta error: {}", e),
+        }
+    }
+}
+
+impl From<String> for AtgError {
+    fn from(e: String) -> AtgError {
+        AtgError { message: e }
+    }
+}
+
 pub struct ParseGtfError {
     pub message: String,
 }
 
 impl ParseGtfError {
-    pub fn new(m: &str) -> Self {
+    pub fn new<S: fmt::Display>(s: S) -> Self {
         Self {
-            message: m.to_string(),
+            message: s.to_string(),
         }
     }
 
@@ -51,9 +111,9 @@ pub struct ParseRefGeneError {
 }
 
 impl ParseRefGeneError {
-    pub fn new(message: &str) -> ParseRefGeneError {
+    pub fn new<S: fmt::Display>(s: S) -> ParseRefGeneError {
         ParseRefGeneError {
-            message: message.to_string(),
+            message: s.to_string(),
         }
     }
 }
@@ -105,9 +165,9 @@ pub struct ParseBedError {
 }
 
 impl ParseBedError {
-    pub fn new(message: &str) -> ParseBedError {
+    pub fn new<S: fmt::Display>(s: S) -> ParseBedError {
         ParseBedError {
-            message: message.to_string(),
+            message: s.to_string(),
         }
     }
 }
@@ -221,7 +281,7 @@ impl ReadWriteError {
 
 impl fmt::Display for ReadWriteError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Unable to read or write: {}", self.message)
+        write!(f, "{}", self.message)
     }
 }
 
@@ -238,5 +298,11 @@ impl From<ParseRefGeneError> for ReadWriteError {
         Self {
             message: err.to_string(),
         }
+    }
+}
+
+impl From<String> for ReadWriteError {
+    fn from(e: String) -> ReadWriteError {
+        ReadWriteError { message: e }
     }
 }

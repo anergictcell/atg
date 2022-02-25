@@ -262,6 +262,28 @@ impl Transcript {
             vec![]
         }
     }
+
+    pub fn exon_coordinates(&self) -> Vec<(&str, u32, u32)> {
+        let mut coords: Vec<(&str, u32, u32)> = vec![];
+        for exon in self.exons() {
+            coords.push((self.chrom(), exon.start(), exon.end()))
+        }
+        coords
+    }
+
+    pub fn cds_coordinates(&self) -> Vec<(&str, u32, u32)> {
+        let mut coords: Vec<(&str, u32, u32)> = vec![];
+        for exon in self.exons() {
+            if exon.is_coding() {
+                coords.push((
+                    self.chrom(),
+                    exon.cds_start().unwrap(),
+                    exon.cds_end().unwrap(),
+                ))
+            }
+        }
+        coords
+    }
 }
 
 impl fmt::Display for Transcript {
