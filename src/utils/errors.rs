@@ -1,8 +1,7 @@
+use core::num::TryFromIntError;
 use std::error::Error;
 use std::fmt;
 use std::num::ParseIntError;
-
-use crate::utils::fastareader::FastaError;
 
 pub struct AtgError {
     message: String,
@@ -304,5 +303,57 @@ impl From<ParseRefGeneError> for ReadWriteError {
 impl From<String> for ReadWriteError {
     fn from(e: String) -> ReadWriteError {
         ReadWriteError { message: e }
+    }
+}
+
+
+#[derive(Debug)]
+pub struct FastaError {
+    message: String,
+}
+
+impl FastaError {
+    pub fn new<S: fmt::Display>(s: S) -> Self {
+        FastaError {
+            message: s.to_string(),
+        }
+    }
+}
+
+impl Error for FastaError {}
+
+impl fmt::Display for FastaError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.message)
+    }
+}
+
+impl From<String> for FastaError {
+    fn from(s: String) -> Self {
+        FastaError { message: s }
+    }
+}
+
+impl From<ParseIntError> for FastaError {
+    fn from(err: ParseIntError) -> Self {
+        FastaError {
+            message: err.to_string(),
+        }
+    }
+}
+
+impl From<std::io::Error> for FastaError {
+    fn from(err: std::io::Error) -> Self {
+        FastaError {
+            message: err.to_string(),
+        }
+    }
+}
+
+impl From<TryFromIntError> for FastaError {
+    fn from(err: TryFromIntError) -> Self {
+        FastaError {
+            message: err.to_string(),
+        }
     }
 }

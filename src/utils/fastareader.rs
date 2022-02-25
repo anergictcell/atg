@@ -1,66 +1,15 @@
-use core::num::TryFromIntError;
+use crate::utils::errors::FastaError;
 use std::collections::HashMap;
 use std::convert::TryFrom;
-use std::error::Error;
-use std::fmt;
+
+
 use std::fs::{read_to_string, File};
 use std::io::{BufReader, Read, Seek, SeekFrom};
-use std::num::ParseIntError;
+
 use std::path::Path;
 use std::string::ToString;
 
 use crate::models::Sequence;
-
-#[derive(Debug)]
-pub struct FastaError {
-    message: String,
-}
-
-impl FastaError {
-    pub fn new<S: fmt::Display>(s: S) -> Self {
-        FastaError {
-            message: s.to_string(),
-        }
-    }
-}
-
-impl Error for FastaError {}
-
-impl fmt::Display for FastaError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.message)
-    }
-}
-
-impl From<String> for FastaError {
-    fn from(s: String) -> Self {
-        FastaError { message: s }
-    }
-}
-
-impl From<ParseIntError> for FastaError {
-    fn from(err: ParseIntError) -> Self {
-        FastaError {
-            message: err.to_string(),
-        }
-    }
-}
-
-impl From<std::io::Error> for FastaError {
-    fn from(err: std::io::Error) -> Self {
-        FastaError {
-            message: err.to_string(),
-        }
-    }
-}
-
-impl From<TryFromIntError> for FastaError {
-    fn from(err: TryFromIntError) -> Self {
-        FastaError {
-            message: err.to_string(),
-        }
-    }
-}
 
 type FastaResult<T> = Result<T, FastaError>;
 
