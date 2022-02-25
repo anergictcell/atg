@@ -306,7 +306,6 @@ impl From<String> for ReadWriteError {
     }
 }
 
-
 #[derive(Debug)]
 pub struct FastaError {
     message: String,

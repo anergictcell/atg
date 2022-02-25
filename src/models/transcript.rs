@@ -13,7 +13,7 @@ use crate::utils::errors::BuildTranscriptError;
 ///
 /// A transcript contains exons, some of which may be coding.
 /// Transcripts are directional and the direction is encoded through the [strand](crate::models::Strand).
-
+///
 /// `Transcript`s should be created using `TranscriptBuilder`
 #[derive(Debug)]
 pub struct Transcript {

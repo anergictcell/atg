@@ -264,7 +264,6 @@ impl FromStr for SequenceBuilder {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
