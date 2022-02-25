@@ -1,3 +1,4 @@
 /target
 .DS_Store
 Cargo.toml.bck
+tests/data/hg19.fasta*

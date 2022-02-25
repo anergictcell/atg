@@ -1,8 +1,14 @@
 /// https://www.biostars.org/p/98885/
+use crate::utils::fastareader::FastaReader;
+use std::fs::File;
+use std::convert::TryInto;
 use core::slice::Chunks;
 use core::str::FromStr;
 use std::convert::TryFrom;
 use std::fmt;
+
+use crate::models::{Transcript};
+
 
 // UTF-8 encoding of all nucleotides
 const UPPERCASE_A: u8 = 0x41;
@@ -211,6 +217,54 @@ impl Sequence {
         self.sequence.chunks(chunk_size)
     }
 }
+
+pub enum SequenceBuilder {
+    Cds,
+    Exons,
+    Transcript,
+}
+
+impl SequenceBuilder {
+    pub fn build(&self, transcript: &Transcript, fasta_reader: &mut FastaReader<File>) -> Sequence {
+        let segments = match self {
+            SequenceBuilder::Cds => transcript.cds_coordinates(),
+            SequenceBuilder::Exons => transcript.exon_coordinates(),
+            SequenceBuilder::Transcript => vec![(
+                transcript.chrom(),
+                transcript.tx_start(),
+                transcript.tx_end(),
+            )],
+        };
+
+        let capacity: u32 = segments.iter().map(|x| x.2 - x.1 + 1).sum();
+        let mut seq = Sequence::with_capacity(capacity.try_into().unwrap());
+
+        for segment in segments {
+            seq.append(
+                fasta_reader
+                    .read_sequence(segment.0, segment.1.into(), segment.2.into())
+                    .unwrap(),
+            )
+        }
+        if !transcript.forward() {
+            seq.reverse_complement()
+        }
+        seq
+    }
+}
+
+impl FromStr for SequenceBuilder {
+    type Err = String;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "cds" => Ok(Self::Cds),
+            "exons" => Ok(Self::Exons),
+            "transcript" => Ok(Self::Transcript),
+            _ => Err(format!("invalid fasta-format {}", s)),
+        }
+    }
+}
+
 
 #[cfg(test)]
 mod tests {
