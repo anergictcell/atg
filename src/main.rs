@@ -2,9 +2,9 @@
 extern crate log;
 use std::process;
 
+use atg::fasta::FastaReader;
 use atg::models::Transcripts;
 use atg::utils::errors::AtgError;
-use atg::utils::fastareader::FastaReader;
 use clap::{App, Arg, ArgMatches};
 
 use atg::bed;

@@ -1,14 +1,13 @@
 /// https://www.biostars.org/p/98885/
-use crate::utils::fastareader::FastaReader;
-use std::fs::File;
-use std::convert::TryInto;
 use core::slice::Chunks;
 use core::str::FromStr;
 use std::convert::TryFrom;
+use std::convert::TryInto;
 use std::fmt;
+use std::fs::File;
 
-use crate::models::{Transcript};
-
+use crate::fasta::FastaReader;
+use crate::models::Transcript;
 
 // UTF-8 encoding of all nucleotides
 const UPPERCASE_A: u8 = 0x41;
