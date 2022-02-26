@@ -232,12 +232,10 @@ impl<W: std::io::Write> TranscriptWrite for Writer<W> {
             self.inner
                 .write_all(format!(">{}", (self.header_template)(transcript)).as_bytes())?;
 
-            let sequence = self.seq_builder.build(transcript, fasta_reader).to_string();
-            let b = sequence.as_bytes();
-
+            let sequence = self.seq_builder.build(transcript, fasta_reader).to_bytes();
             // ensure line breaks after 80 nucleotides, as per FASTA specs
             // the last line will _not_ end in a line-break
-            for line in b.chunks(self.line_length) {
+            for line in sequence.chunks(self.line_length) {
                 self.inner.write_all("\n".as_bytes())?;
                 self.inner.write_all(line)?;
             }

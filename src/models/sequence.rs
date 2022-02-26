@@ -331,6 +331,19 @@ impl Sequence {
         self.reverse();
         self.complement();
     }
+
+    /// Returns the Sequence as a byte array of UTF-8 encoded nucleotides
+    ///
+    /// # Examples
+    /// ```rust
+    /// use atg::models::Sequence;
+    ///
+    /// let mut seq = Sequence::from_raw_bytes("AC".as_bytes(), 2).unwrap();
+    /// assert_eq!(seq.to_bytes(), [0x41, 0x43]);
+    /// ```
+    pub fn to_bytes(&self) -> Vec<u8> {
+        self.sequence.iter().map(|n| n.to_bytes()).collect()
+    }
 }
 
 pub enum SequenceBuilder {
