@@ -346,6 +346,15 @@ impl Sequence {
     }
 }
 
+/// Creates a `Sequence` from a `Transcript` and a Fasta file
+///
+/// SequenceBuilder reads the Fasta file and creates a Sequence
+/// based on the genomic location of a transcript and the desired target regions.
+///
+/// Available variants:
+/// * Cds - Build only the coding sequence
+/// * Exons - Build the sequence of all exons - including 5' and 3' UTR or non-coding transcripts
+/// * Transcript - Build the sequence of the full transcript, also including introns
 pub enum SequenceBuilder {
     Cds,
     Exons,
@@ -353,6 +362,23 @@ pub enum SequenceBuilder {
 }
 
 impl SequenceBuilder {
+
+    /// Builds the actual Sequence
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use atg::fasta::FastaReader;
+    /// use atg::models::SequenceBuilder;
+    /// use atg::tests::transcripts::standard_transcript;
+    ///
+    /// let transcript = standard_transcript();
+    ///
+    /// let mut reader = FastaReader::from_file("tests/data/small.fasta").unwrap();
+    /// let seq = SequenceBuilder::Cds.build(&transcript, &mut reader);
+    ///
+    /// assert_eq!(seq.to_string(), "AGGCCCACTCA".to_string());
+    /// ```
     pub fn build(&self, transcript: &Transcript, fasta_reader: &mut FastaReader<File>) -> Sequence {
         let segments = match self {
             SequenceBuilder::Cds => transcript.cds_coordinates(),
