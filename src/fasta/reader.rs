@@ -58,7 +58,6 @@ impl ChromosomeIndex {
                 pos, self.bases
             )));
         }
-        println!("Pos: {}  | len: {}", pos, self.bases);
         let line_offset = (pos - 1) % self.line_bases;
         let line_start = (pos - 1) / self.line_bases * self.line_bytes;
         Ok(self.start + line_start + line_offset)
@@ -174,8 +173,12 @@ impl FastaReader<File> {
     /// from the fasta file. The raw bytes include newline and
     /// return carriage characters from the Fasta file.
     ///
+    /// # Info
     /// There are almost no use-cases to use this method. In most cases
     /// you want to use [`read_sequence`](`FastaReader::read_sequence`) instead.
+    ///
+    /// This method is using [`BufReader::read_exact`](`std::io::BufReader::read_exact`) internally
+    /// to read the exact required amount of bytes from the Fasta file.
     pub fn read_range(&mut self, chrom: &str, start: u64, end: u64) -> FastaResult<Vec<u8>> {
         let (byte_start, byte_end) = self.idx.offset_range(chrom, start, end)?;
         self.inner.seek(SeekFrom::Start(byte_start))?;
@@ -188,6 +191,9 @@ impl FastaReader<File> {
     /// Returns the Nucleotide [`Sequence`] of the specified region
     ///
     /// The `Sequence` includes both `start` and `end` positions and is 1-based.
+    ///
+    /// This method is using [`BufReader::read_exact`](`std::io::BufReader::read_exact`) internally
+    /// to read the exact required amount of bytes from the Fasta file.
     ///
     /// ```rust
     /// use atg;
@@ -204,6 +210,9 @@ impl FastaReader<File> {
     /// ```
     pub fn read_sequence(&mut self, chrom: &str, start: u64, end: u64) -> FastaResult<Sequence> {
         let raw_bytes = self.read_range(chrom, start, end)?;
+        // the length of the final sequence is different to the length
+        // of the raw bytes, since the raw bytes contain LF and CR characters
+        // which are removed from the `Sequence`
         let length = usize::try_from(end - start)?;
         Ok(Sequence::from_raw_bytes(&raw_bytes, length)?)
     }
