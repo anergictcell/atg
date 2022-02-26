@@ -11,11 +11,13 @@ use crate::utils::errors::ReadWriteError;
 ///
 /// The `Writer` can write the nucleotide sequences of transcripts in 3 different ways:
 /// * `cds` Write the actual coding sequence of each transcript
-/// * `exons` Write the processed mRNA sequence of each transcript (including 5' and 3' UTR)
+/// * `exons` Write the processed cDNA sequence of each transcript (including 5' and 3' UTR)
 /// * `transcript` Write the full genomic DNA sequence of each transcripts (including UTR and introns)
 ///
 /// The nucleotide sequence is stranded, i.e. for `-`-strand transcripts, the sequence will always
 /// be the reverse complementary of the reference DNA sequence.
+///
+/// All sequences are based on DNA nucleotides.
 ///
 /// Sequences will be split into lines with 50 bp each.
 ///

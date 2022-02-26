@@ -1,5 +1,3 @@
-/// https://www.biostars.org/p/98885/
-use core::slice::Chunks;
 use core::str::FromStr;
 use std::convert::TryFrom;
 use std::convert::TryInto;
@@ -24,6 +22,7 @@ const LOWERCASE_N: u8 = 0x64;
 const LF: u8 = 0xa;
 const CR: u8 = 0xd;
 
+/// Nucleotide is a single DNA nucleotide (A C G T N)
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Nucleotide {
     A,
@@ -34,6 +33,7 @@ pub enum Nucleotide {
 }
 
 impl Nucleotide {
+    /// Crates a `Nucleotide` from a character
     pub fn new(c: &char) -> Result<Self, String> {
         match c {
             'a' | 'A' => Ok(Self::A),
@@ -45,6 +45,7 @@ impl Nucleotide {
         }
     }
 
+    /// Returns the complementary nucleotide
     pub fn complement(&self) -> Self {
         match self {
             Self::A => Self::T,
@@ -52,6 +53,16 @@ impl Nucleotide {
             Self::G => Self::C,
             Self::T => Self::A,
             Self::N => Self::N,
+        }
+    }
+
+    pub fn to_bytes(self) -> u8 {
+        match self {
+            Self::A => UPPERCASE_A,
+            Self::C => UPPERCASE_C,
+            Self::G => UPPERCASE_G,
+            Self::T => UPPERCASE_T,
+            Self::N => UPPERCASE_N,
         }
     }
 }
@@ -128,6 +139,7 @@ impl From<&Nucleotide> for char {
     }
 }
 
+/// A DNA sequence consisting of [`Nucleotides`](`Nucleotide`).
 pub struct Sequence {
     sequence: Vec<Nucleotide>,
 }
@@ -150,70 +162,174 @@ impl fmt::Display for Sequence {
     }
 }
 
+impl Default for Sequence {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Sequence {
+    /// Creates a new sequence
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use atg::models::Sequence;
+    ///
+    /// let seq = Sequence::new();
+    /// assert_eq!(seq.len(), 0)
+    /// ```
+    pub fn new() -> Self {
+        Sequence {
+            sequence: Vec::new(),
+        }
+    }
+
+    /// Creates a new sequence with the specified capacity
+    ///
+    /// Use this method if you know in advance the final size of the Sequence.
+    /// It creates an empty Sequence, but one with an initial buffer that can
+    /// hold capacity Nucleotides.
+    ///
+    /// It is important to note that although the returned Sequence has the capacity specified,
+    /// the Sequence will have a zero length
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use atg::models::Sequence;
+    ///
+    /// let mut seq = Sequence::with_capacity(5);
+    /// assert_eq!(seq.len(), 0);
+    ///
+    /// // this will not re-allocate memory, since all nucleotides fit into capacity
+    /// for c in vec!['A', 'C', 'G', 'T', 'N'] {
+    ///     seq.push_char(&c).unwrap();
+    /// }
+    /// assert_eq!(seq.len(), 5);
+    /// ```
+    ///
     pub fn with_capacity(capacity: usize) -> Self {
         Sequence {
             sequence: Vec::with_capacity(capacity),
         }
     }
-    pub fn len(&self) -> usize {
-        self.sequence.len()
-    }
 
-    pub fn is_empty(&self) -> bool {
-        self.sequence.is_empty()
-    }
-
-    pub fn push(&mut self, c: &char) -> Result<(), String> {
-        self.sequence.push(Nucleotide::try_from(c)?);
-        Ok(())
-    }
-
-    pub fn push_nucleotide(&mut self, n: Nucleotide) -> Result<(), String> {
-        self.sequence.push(n);
-        Ok(())
-    }
-
-    pub fn append(&mut self, s: Sequence) {
-        self.sequence.append(&mut s.into_inner())
-    }
-
-    pub fn into_inner(self) -> Vec<Nucleotide> {
-        self.sequence
-    }
-
+    /// Creates a new `Sequence` from a raw bytes nucleotide sequence, ignoring newlines
+    ///
+    /// The `len` value is not required to be correct, it helps with allocating the right
+    /// amount of memory for the Sequence.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use atg::models::Sequence;
+    ///
+    /// let seq = Sequence::from_raw_bytes("AC".as_bytes(), 2).unwrap();
+    /// assert_eq!(seq.len(), 2);
+    /// let seq = Sequence::from_raw_bytes("A\nC\r\nGT".as_bytes(), 2).unwrap();
+    /// assert_eq!(seq.len(), 4);
+    /// ```
+    ///
     pub fn from_raw_bytes(bytes: &[u8], len: usize) -> Result<Self, String> {
         let mut seq = Self::with_capacity(len);
         for b in bytes {
             if let Ok(n) = Nucleotide::try_from(b) {
-                seq.push_nucleotide(n)?
+                seq.push(n)?
             }
         }
         Ok(seq)
     }
 
+    /// Returns the length of the Sequence
+    /// # Examples
+    ///
+    /// ```rust
+    /// use atg::models::Sequence;
+    ///
+    /// let seq = Sequence::from_raw_bytes("AC".as_bytes(), 2).unwrap();
+    /// assert_eq!(seq.len(), 2);
+    /// ```
+    ///
+    pub fn len(&self) -> usize {
+        self.sequence.len()
+    }
+
+    /// Returns true if the Sequence contains no Nucleotides.
+    pub fn is_empty(&self) -> bool {
+        self.sequence.is_empty()
+    }
+
+    /// Appends a `char` as Nucleotide to the back of a collection.
+    pub fn push_char(&mut self, c: &char) -> Result<(), String> {
+        self.sequence.push(Nucleotide::try_from(c)?);
+        Ok(())
+    }
+
+    /// Appends a Nucleotide to the back of a collection.
+    pub fn push(&mut self, n: Nucleotide) -> Result<(), String> {
+        self.sequence.push(n);
+        Ok(())
+    }
+
+    /// Moves all the elements of `other` into `Self`, leaving `other` empty.
+    pub fn append(&mut self, other: Sequence) {
+        self.sequence.append(&mut other.into_inner())
+    }
+
+    fn into_inner(self) -> Vec<Nucleotide> {
+        self.sequence
+    }
+
+    /// Changes `Self` to the complementary sequence
+    ///
+    /// # Examples
+    /// ```rust
+    /// use atg::models::Sequence;
+    ///
+    /// let mut seq = Sequence::from_raw_bytes("AC".as_bytes(), 2).unwrap();
+    /// assert_eq!(seq.to_string(), "AC".to_string());
+    ///
+    /// seq.complement();
+    /// assert_eq!(seq.to_string(), "TG".to_string());
+    /// ```
     pub fn complement(&mut self) {
         for n in &mut self.sequence {
             *n = n.complement();
         }
     }
 
+    /// Reverses the `Sequence`, in place
+    ///
+    /// # Examples
+    /// ```rust
+    /// use atg::models::Sequence;
+    ///
+    /// let mut seq = Sequence::from_raw_bytes("AC".as_bytes(), 2).unwrap();
+    /// assert_eq!(seq.to_string(), "AC".to_string());
+    ///
+    /// seq.reverse();
+    /// assert_eq!(seq.to_string(), "CA".to_string());
+    /// ```
     pub fn reverse(&mut self) {
         self.sequence.reverse()
     }
 
+    /// Changes `Self` into the reverse complement sequence
+    ///
+    /// # Examples
+    /// ```rust
+    /// use atg::models::Sequence;
+    ///
+    /// let mut seq = Sequence::from_raw_bytes("AC".as_bytes(), 2).unwrap();
+    /// assert_eq!(seq.to_string(), "AC".to_string());
+    ///
+    /// seq.reverse_complement();
+    /// assert_eq!(seq.to_string(), "GT".to_string());
+    /// ```
     pub fn reverse_complement(&mut self) {
         self.reverse();
         self.complement();
-    }
-
-    pub fn format(self, line_length: usize) -> Vec<Sequence> {
-        println!("{}", line_length);
-        vec![self]
-    }
-
-    pub fn chunks(&self, chunk_size: usize) -> Chunks<'_, Nucleotide> {
-        self.sequence.chunks(chunk_size)
     }
 }
 
