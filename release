@@ -33,6 +33,23 @@ cargo clippy && \
 cargo fmt && \
 cargo test
 
+echo "Running basic check of GTF and RefGene convertion"
+diff \
+<( cargo run -- \
+  -f gtf -i tests/data/example.gtf \
+  -t refgene -o /dev/stdout 2> /dev/null | \
+  sort ) \
+tests/data/example.refgene
+
+diff \
+<( cargo run -- \
+  -f refgene -i tests/data/example.refgene \
+  -t gtf -g ncbiRefSeq.2021-05-17 \
+  -o /dev/stdout 2> /dev/null | \
+  cut -f1-5,7-8 | sort ) \
+<( cut -f1-5,7-8 tests/data/example.gtf)
+
+
 echo "Updating version number"
 sed -i .bck "s/^version =.*$/version = \"${VERSION}\"/" ./Cargo.toml
 cargo build
