@@ -12,7 +12,7 @@ mod utils;
 pub use crate::models::codon::Codon;
 pub use crate::models::exon::Exon;
 pub use crate::models::frame::Frame;
-pub use crate::models::sequence::{Sequence, SequenceBuilder};
+pub use crate::models::sequence::{Nucleotide, Sequence};
 pub use crate::models::transcript::{Transcript, TranscriptBuilder};
 pub use crate::models::transcripts::Transcripts;
 pub use crate::models::utils::parse_chrom;

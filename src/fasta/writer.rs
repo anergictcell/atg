@@ -1,10 +1,11 @@
+use std::convert::TryInto;
 use std::fs::File;
 use std::io::{BufWriter, Write};
 use std::path::Path;
 use std::str::FromStr;
 
 use crate::fasta::FastaReader;
-use crate::models::{SequenceBuilder, Transcript, TranscriptWrite};
+use crate::models::{Sequence, Transcript, TranscriptWrite};
 use crate::utils::errors::ReadWriteError;
 
 /// Writes [`Transcript`]s into a `BufWriter`
@@ -249,6 +250,63 @@ impl<W: std::io::Write> TranscriptWrite for Writer<W> {
     }
 }
 
+/// Creates a `Sequence` from a `Transcript` and a Fasta file
+///
+/// SequenceBuilder reads the Fasta file and creates a Sequence
+/// based on the genomic location of a transcript and the desired target regions.
+///
+/// Available variants:
+/// * Cds - Build only the coding sequence
+/// * Exons - Build the sequence of all exons - including 5' and 3' UTR or non-coding transcripts
+/// * Transcript - Build the sequence of the full transcript, also including introns
+enum SequenceBuilder {
+    Cds,
+    Exons,
+    Transcript,
+}
+
+impl SequenceBuilder {
+    /// Builds the actual Sequence
+    pub fn build(&self, transcript: &Transcript, fasta_reader: &mut FastaReader<File>) -> Sequence {
+        let segments = match self {
+            SequenceBuilder::Cds => transcript.cds_coordinates(),
+            SequenceBuilder::Exons => transcript.exon_coordinates(),
+            SequenceBuilder::Transcript => vec![(
+                transcript.chrom(),
+                transcript.tx_start(),
+                transcript.tx_end(),
+            )],
+        };
+
+        let capacity: u32 = segments.iter().map(|x| x.2 - x.1 + 1).sum();
+        let mut seq = Sequence::with_capacity(capacity.try_into().unwrap());
+
+        for segment in segments {
+            seq.append(
+                fasta_reader
+                    .read_sequence(segment.0, segment.1.into(), segment.2.into())
+                    .unwrap(),
+            )
+        }
+        if !transcript.forward() {
+            seq.reverse_complement()
+        }
+        seq
+    }
+}
+
+impl FromStr for SequenceBuilder {
+    type Err = String;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "cds" => Ok(Self::Cds),
+            "exons" => Ok(Self::Exons),
+            "transcript" => Ok(Self::Transcript),
+            _ => Err(format!("invalid fasta-format {}", s)),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -297,5 +355,13 @@ mod tests {
             output.split('\n').collect::<Vec<&str>>()[1],
             "CACGGGGAAATGGAGGGACTGCCCAGTAGCCTCAGGACACAGGGG"
         );
+    }
+
+    #[test]
+    fn test_sequence_building() {
+        let transcript = standard_transcript();
+        let mut reader = FastaReader::from_file("tests/data/small.fasta").unwrap();
+        let seq = SequenceBuilder::Cds.build(&transcript, &mut reader);
+        assert_eq!(seq.to_string(), "AGGCCCACTCA".to_string());
     }
 }

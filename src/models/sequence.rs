@@ -1,11 +1,6 @@
 use core::str::FromStr;
 use std::convert::TryFrom;
-use std::convert::TryInto;
 use std::fmt;
-use std::fs::File;
-
-use crate::fasta::FastaReader;
-use crate::models::Transcript;
 
 // UTF-8 encoding of all nucleotides
 const UPPERCASE_A: u8 = 0x41;
@@ -56,6 +51,7 @@ impl Nucleotide {
         }
     }
 
+    // Returns the UTF-8 encoding of the Nucleotide string representation
     pub fn to_bytes(self) -> u8 {
         match self {
             Self::A => UPPERCASE_A,
@@ -139,7 +135,10 @@ impl From<&Nucleotide> for char {
     }
 }
 
-/// A DNA sequence consisting of [`Nucleotides`](`Nucleotide`).
+/// A DNA sequence consisting of Nucleotides.
+///
+/// It provides some utility methods, like
+///[`reverse_complement`](`Sequence::reverse_complement`)
 pub struct Sequence {
     sequence: Vec<Nucleotide>,
 }
@@ -261,22 +260,55 @@ impl Sequence {
     }
 
     /// Appends a `char` as Nucleotide to the back of a collection.
+    ///
+    /// # Examples
+    /// ```rust
+    /// use atg::models::{Nucleotide, Sequence};
+    ///
+    /// let mut seq = Sequence::from_raw_bytes("AC".as_bytes(), 2).unwrap();
+    /// assert_eq!(seq.to_string(), "AC".to_string());
+    ///
+    /// seq.push_char(&'T').unwrap();
+    /// assert_eq!(seq.to_string(), "ACT".to_string());
     pub fn push_char(&mut self, c: &char) -> Result<(), String> {
         self.sequence.push(Nucleotide::try_from(c)?);
         Ok(())
     }
 
     /// Appends a Nucleotide to the back of a collection.
+    ///
+    /// # Examples
+    /// ```rust
+    /// use atg::models::{Nucleotide, Sequence};
+    ///
+    /// let mut seq = Sequence::from_raw_bytes("AC".as_bytes(), 2).unwrap();
+    /// assert_eq!(seq.to_string(), "AC".to_string());
+    ///
+    /// seq.push(Nucleotide::new(&'T').unwrap()).unwrap();
+    /// assert_eq!(seq.to_string(), "ACT".to_string());
+    /// ```
     pub fn push(&mut self, n: Nucleotide) -> Result<(), String> {
         self.sequence.push(n);
         Ok(())
     }
 
     /// Moves all the elements of `other` into `Self`, leaving `other` empty.
+    ///
+    /// # Examples
+    /// ```rust
+    /// use atg::models::{Nucleotide, Sequence};
+    ///
+    /// let mut seq = Sequence::from_raw_bytes("AC".as_bytes(), 2).unwrap();
+    /// assert_eq!(seq.to_string(), "AC".to_string());
+    ///
+    /// let seq_2 = Sequence::from_raw_bytes("GT".as_bytes(), 2).unwrap();
+    /// seq.append(seq_2);
+    /// assert_eq!(seq.to_string(), "ACGT".to_string());
     pub fn append(&mut self, other: Sequence) {
         self.sequence.append(&mut other.into_inner())
     }
 
+    /// Unwraps the Sequence, returning the underlying Vector of [`Nucleotide`]s
     fn into_inner(self) -> Vec<Nucleotide> {
         self.sequence
     }
@@ -343,78 +375,6 @@ impl Sequence {
     /// ```
     pub fn to_bytes(&self) -> Vec<u8> {
         self.sequence.iter().map(|n| n.to_bytes()).collect()
-    }
-}
-
-/// Creates a `Sequence` from a `Transcript` and a Fasta file
-///
-/// SequenceBuilder reads the Fasta file and creates a Sequence
-/// based on the genomic location of a transcript and the desired target regions.
-///
-/// Available variants:
-/// * Cds - Build only the coding sequence
-/// * Exons - Build the sequence of all exons - including 5' and 3' UTR or non-coding transcripts
-/// * Transcript - Build the sequence of the full transcript, also including introns
-pub enum SequenceBuilder {
-    Cds,
-    Exons,
-    Transcript,
-}
-
-impl SequenceBuilder {
-    /// Builds the actual Sequence
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use atg::fasta::FastaReader;
-    /// use atg::models::SequenceBuilder;
-    /// use atg::tests::transcripts::standard_transcript;
-    ///
-    /// let transcript = standard_transcript();
-    ///
-    /// let mut reader = FastaReader::from_file("tests/data/small.fasta").unwrap();
-    /// let seq = SequenceBuilder::Cds.build(&transcript, &mut reader);
-    ///
-    /// assert_eq!(seq.to_string(), "AGGCCCACTCA".to_string());
-    /// ```
-    pub fn build(&self, transcript: &Transcript, fasta_reader: &mut FastaReader<File>) -> Sequence {
-        let segments = match self {
-            SequenceBuilder::Cds => transcript.cds_coordinates(),
-            SequenceBuilder::Exons => transcript.exon_coordinates(),
-            SequenceBuilder::Transcript => vec![(
-                transcript.chrom(),
-                transcript.tx_start(),
-                transcript.tx_end(),
-            )],
-        };
-
-        let capacity: u32 = segments.iter().map(|x| x.2 - x.1 + 1).sum();
-        let mut seq = Sequence::with_capacity(capacity.try_into().unwrap());
-
-        for segment in segments {
-            seq.append(
-                fasta_reader
-                    .read_sequence(segment.0, segment.1.into(), segment.2.into())
-                    .unwrap(),
-            )
-        }
-        if !transcript.forward() {
-            seq.reverse_complement()
-        }
-        seq
-    }
-}
-
-impl FromStr for SequenceBuilder {
-    type Err = String;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "cds" => Ok(Self::Cds),
-            "exons" => Ok(Self::Exons),
-            "transcript" => Ok(Self::Transcript),
-            _ => Err(format!("invalid fasta-format {}", s)),
-        }
     }
 }
 
