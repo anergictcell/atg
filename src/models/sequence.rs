@@ -362,7 +362,6 @@ pub enum SequenceBuilder {
 }
 
 impl SequenceBuilder {
-
     /// Builds the actual Sequence
     ///
     /// # Examples

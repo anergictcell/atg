@@ -77,7 +77,7 @@ match writer.write_transcripts(&transcripts) {
 - [x] Add to crates.io
 - [x] Bed module to generate bed files with exons and introns
 - [ ] Compare transcripts from two different inputs
-- [ ] Add fasta reading from BioRust for nt and aa sequence outputs
+- [x] Add fasta reading for nt and aa sequence outputs
 
 ## Known issues
 ### GTF parsing

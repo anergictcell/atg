@@ -168,7 +168,7 @@ impl<W: std::io::Write> Writer<W> {
     ///
     ///
     /// # Example
-    ///
+    ///s
     /// ```rust
     /// use atg::fasta::Writer;
     /// use atg::fasta::FastaReader;
@@ -233,7 +233,7 @@ impl<W: std::io::Write> TranscriptWrite for Writer<W> {
                 .write_all(format!(">{}", (self.header_template)(transcript)).as_bytes())?;
 
             let sequence = self.seq_builder.build(transcript, fasta_reader).to_bytes();
-            // ensure line breaks after 80 nucleotides, as per FASTA specs
+            // ensure line breaks after x nucleotides, as per FASTA specs
             // the last line will _not_ end in a line-break
             for line in sequence.chunks(self.line_length) {
                 self.inner.write_all("\n".as_bytes())?;

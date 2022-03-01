@@ -2,3 +2,4 @@
 .DS_Store
 Cargo.toml.bck
 tests/data/hg19.fasta*
+tests/data/prepare_example_files.sh

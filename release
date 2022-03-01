@@ -14,11 +14,15 @@ confirmation() {
 echo -ne "Preparing for release ${VERSION}. Is this correct? [y/n] "
 confirmation
 
-echo "Creating release branch"
-git checkout main && \
-git pull && \
-git checkout -b release/${VERSION} && \
-git push -u origin release/${VERSION}
+if git rev-parse --quiet --verify $REVISION > /dev/null; then
+    echo "Release branch exists already"
+else
+  echo "Creating release branch"
+  git checkout main && \
+  git pull && \
+  git checkout -b release/${VERSION} && \
+  git push -u origin release/${VERSION}
+fi
 
 echo -ne "Did you finish merging all features into 'release/${VERSION}'? [y/n] "
 confirmation
@@ -35,7 +39,8 @@ cargo build
 
 git commit -am "Release ${VERSION}"
 git tag ${VERSION}
-git push --follow-tags
+git push
+git push --tags
 
 echo -ne "Do you want to build the binaries now? [y/n] "
 confirmation

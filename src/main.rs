@@ -68,6 +68,17 @@ fn parse_cli_args() -> ArgMatches<'static> {
                 .default_value("/dev/stdout"),
         )
         .arg(
+            Arg::with_name("gtf_source")
+                .long("gtf-source")
+                .short("-g")
+                .value_name("source")
+                .help("The feature source to indicate in GTF files (required with >>gtf<<)")
+                .display_order(1000)
+                .takes_value(true)
+                .required_if("to", "gtf")
+                .default_value(env!("CARGO_PKG_NAME")),
+        )
+        .arg(
             Arg::with_name("fasta_reference")
                 .long("reference")
                 .short("-r")
@@ -128,8 +139,9 @@ fn read_input_file(input_format: &str, input_fd: &str) -> Result<Transcripts, At
 fn write_output(
     output_format: &str,
     output_fd: &str,
-    fasta_reference: &str,
-    fasta_format: &str,
+    gtf_source: Option<&str>,
+    fasta_reference: Option<&str>,
+    fasta_format: Option<&str>,
     transcripts: Transcripts,
 ) -> Result<(), AtgError> {
     let _ = match output_format {
@@ -139,7 +151,7 @@ fn write_output(
         }
         "gtf" => {
             let mut writer = gtf::Writer::from_file(output_fd)?;
-            writer.set_source("atg");
+            writer.set_source(gtf_source.unwrap());
             writer.write_transcripts(&transcripts)?
         }
         "bed" => {
@@ -148,8 +160,8 @@ fn write_output(
         }
         "fasta" => {
             let mut writer = fasta::Writer::from_file(output_fd)?;
-            writer.fasta_reader(FastaReader::from_file(fasta_reference)?);
-            writer.fasta_format(fasta_format);
+            writer.fasta_reader(FastaReader::from_file(fasta_reference.unwrap())?);
+            writer.fasta_format(fasta_format.unwrap());
             writer.write_transcripts(&transcripts)?
         }
         "fasta-split" => {
@@ -166,8 +178,8 @@ fn write_output(
                         .to_str()
                         .expect("ATG does not support non-UTF8 filename"),
                 )?;
-                writer.fasta_reader(FastaReader::from_file(fasta_reference)?);
-                writer.fasta_format(fasta_format);
+                writer.fasta_reader(FastaReader::from_file(fasta_reference.unwrap())?);
+                writer.fasta_format(fasta_format.unwrap());
                 writer.writeln_single_transcript(&tx)?;
             }
         }
@@ -195,8 +207,10 @@ fn main() {
 
     let input_format = cli_commands.value_of("from").unwrap();
     let output_format = cli_commands.value_of("to").unwrap();
-    let fasta_format = cli_commands.value_of("fasta_format").unwrap();
-    let fasta_reference = cli_commands.value_of("fasta_reference").unwrap();
+
+    let gtf_source = cli_commands.value_of("gtf_source");
+    let fasta_format = cli_commands.value_of("fasta_format");
+    let fasta_reference = cli_commands.value_of("fasta_reference");
 
     trace!("Parameters:");
     trace!(
@@ -222,6 +236,7 @@ fn main() {
     match write_output(
         output_format,
         output_fd,
+        gtf_source,
         fasta_reference,
         fasta_format,
         transcripts,
