@@ -333,6 +333,14 @@ impl From<String> for FastaError {
     }
 }
 
+impl From<AtgError> for FastaError {
+    fn from(err: AtgError) -> Self {
+        FastaError {
+            message: err.to_string(),
+        }
+    }
+}
+
 impl From<ParseIntError> for FastaError {
     fn from(err: ParseIntError) -> Self {
         FastaError {

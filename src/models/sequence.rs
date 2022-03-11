@@ -2,6 +2,8 @@ use core::str::FromStr;
 use std::convert::TryFrom;
 use std::fmt;
 
+use crate::utils::errors::AtgError;
+
 // UTF-8 encoding of all nucleotides
 const UPPERCASE_A: u8 = 0x41;
 const UPPERCASE_C: u8 = 0x43;
@@ -29,14 +31,14 @@ pub enum Nucleotide {
 
 impl Nucleotide {
     /// Crates a `Nucleotide` from a character
-    pub fn new(c: &char) -> Result<Self, String> {
+    pub fn new(c: &char) -> Result<Self, AtgError> {
         match c {
             'a' | 'A' => Ok(Self::A),
             'c' | 'C' => Ok(Self::C),
             'g' | 'G' => Ok(Self::G),
             't' | 'T' => Ok(Self::T),
             'n' | 'N' => Ok(Self::N),
-            _ => Err("Invalid nucleotide".to_string()),
+            _ => Err(AtgError::new("Invalid nucleotide")),
         }
     }
 
@@ -64,7 +66,7 @@ impl Nucleotide {
 }
 
 impl FromStr for Nucleotide {
-    type Err = String;
+    type Err = AtgError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "a" | "A" => Ok(Self::A),
@@ -72,7 +74,7 @@ impl FromStr for Nucleotide {
             "g" | "G" => Ok(Self::G),
             "t" | "T" => Ok(Self::T),
             "n" | "N" => Ok(Self::N),
-            _ => Err("Invalid nucleotide".to_string()),
+            _ => Err(AtgError::new("Invalid nucleotide")),
         }
     }
 }
@@ -94,7 +96,7 @@ impl fmt::Display for Nucleotide {
 }
 
 impl TryFrom<&char> for Nucleotide {
-    type Error = String;
+    type Error = AtgError;
     fn try_from(c: &char) -> Result<Self, Self::Error> {
         match c {
             'a' | 'A' => Ok(Self::A),
@@ -102,22 +104,22 @@ impl TryFrom<&char> for Nucleotide {
             'g' | 'G' => Ok(Self::G),
             't' | 'T' => Ok(Self::T),
             'n' | 'N' => Ok(Self::N),
-            '\n' | '\r' => Err("newline".to_string()),
+            '\n' | '\r' => Err(AtgError::new("newline")),
             _ => panic!("invalid nucleotide {}", c),
         }
     }
 }
 
 impl TryFrom<&u8> for Nucleotide {
-    type Error = String;
-    fn try_from(b: &u8) -> Result<Nucleotide, String> {
+    type Error = AtgError;
+    fn try_from(b: &u8) -> Result<Nucleotide, AtgError> {
         match b {
             &LOWERCASE_A | &UPPERCASE_A => Ok(Self::A),
             &LOWERCASE_C | &UPPERCASE_C => Ok(Self::C),
             &LOWERCASE_G | &UPPERCASE_G => Ok(Self::G),
             &LOWERCASE_T | &UPPERCASE_T => Ok(Self::T),
             &LOWERCASE_N | &UPPERCASE_N => Ok(Self::N),
-            &LF | &CR => Err("newline".to_string()),
+            &LF | &CR => Err(AtgError::new("newline")),
             _ => panic!("invalid nucleotide {}", b),
         }
     }
@@ -144,9 +146,12 @@ pub struct Sequence {
 }
 
 impl FromStr for Sequence {
-    type Err = String;
+    type Err = AtgError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let sequence: Vec<Nucleotide> = s.chars().map(|c| Nucleotide::new(&c).unwrap()).collect();
+        let mut sequence: Vec<Nucleotide> = vec![];
+        for c in s.chars(){
+            sequence.push(Nucleotide::new(&c)?)
+        }
         Ok(Self { sequence })
     }
 }
@@ -230,7 +235,7 @@ impl Sequence {
     /// assert_eq!(seq.len(), 4);
     /// ```
     ///
-    pub fn from_raw_bytes(bytes: &[u8], len: usize) -> Result<Self, String> {
+    pub fn from_raw_bytes(bytes: &[u8], len: usize) -> Result<Self, AtgError> {
         let mut seq = Self::with_capacity(len);
         for b in bytes {
             if let Ok(n) = Nucleotide::try_from(b) {
@@ -270,7 +275,7 @@ impl Sequence {
     ///
     /// seq.push_char(&'T').unwrap();
     /// assert_eq!(seq.to_string(), "ACT".to_string());
-    pub fn push_char(&mut self, c: &char) -> Result<(), String> {
+    pub fn push_char(&mut self, c: &char) -> Result<(), AtgError> {
         self.sequence.push(Nucleotide::try_from(c)?);
         Ok(())
     }
@@ -287,7 +292,7 @@ impl Sequence {
     /// seq.push(Nucleotide::new(&'T').unwrap()).unwrap();
     /// assert_eq!(seq.to_string(), "ACT".to_string());
     /// ```
-    pub fn push(&mut self, n: Nucleotide) -> Result<(), String> {
+    pub fn push(&mut self, n: Nucleotide) -> Result<(), AtgError> {
         self.sequence.push(n);
         Ok(())
     }

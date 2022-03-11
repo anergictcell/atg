@@ -279,7 +279,7 @@ impl SequenceBuilder {
         };
 
         let capacity: u32 = segments.iter().map(|x| x.2 - x.1 + 1).sum();
-        let mut seq = Sequence::with_capacity(capacity.try_into().unwrap());
+        let mut seq = Sequence::with_capacity(capacity.try_into().unwrap()); // unwrap can't fail
 
         for segment in segments {
             seq.append(
