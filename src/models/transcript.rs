@@ -55,6 +55,11 @@ impl Transcript {
         self.strand
     }
 
+    /// Returns a mutable reference to the strand / Direction of transcription
+    pub fn strand_mut(&mut self) -> &mut Strand {
+        &mut self.strand
+    }
+
     /// Returns the status of the CDS start
     ///
     /// This will be the start codon for + transcripts and
@@ -313,6 +318,46 @@ impl Transcript {
         }
         coords
     }
+
+    /// Returns the coordinates of the 5' UTR
+    ///
+    /// Non-coding exons are reported fully, the 5' UTR sections of
+    /// partially-coding exons are returned as well as the coordinates
+    /// of complete non-coding exons upstream of the CDS.
+    pub fn utr5_coordinates(&self) -> Vec<(&str, u32, u32)> {
+        let mut utr = self.utr_coordinates();
+        if self.is_coding() {
+            if self.forward() {
+                let start = self.cds_start().unwrap();
+                utr.retain(|coord| coord.2 < start);
+            } else {
+                let end = self.cds_end().unwrap();
+                utr.retain(|coord| coord.1 > end);
+            }
+        }
+        utr
+    }
+
+    /// Returns the coordinates of the 3' UTR
+    ///
+    /// The 3' UTR sections of partially-coding exons are returned
+    /// as well as the coordinates of complete non-coding exons
+    /// downstream of the CDS.
+    pub fn utr3_coordinates(&self) -> Vec<(&str, u32, u32)> {
+        let mut utr = self.utr_coordinates();
+        if self.is_coding() {
+            if self.forward() {
+                let end = self.cds_end().unwrap();
+                utr.retain(|coord| coord.1 > end);
+            } else {
+                let start = self.cds_start().unwrap();
+                utr.retain(|coord| coord.2 < start);
+            }
+            utr
+        } else {
+            vec![]
+        }
+    }
 }
 
 impl fmt::Display for Transcript {
@@ -564,6 +609,7 @@ impl<'a> TranscriptBuilder<'a> {
 
 #[cfg(test)]
 mod tests {
+    use crate::models::utils::Strand;
     use crate::tests::transcripts::standard_transcript;
 
     #[test]
@@ -577,6 +623,48 @@ mod tests {
         let ends: Vec<u32> = coords.iter().map(|x| x.2).collect();
         assert_eq!(starts, vec![11, 21, 45, 51]);
         assert_eq!(ends, vec![15, 23, 45, 55]);
+    }
+
+    #[test]
+    fn test_utr5_coordinates() {
+        let mut transcript = standard_transcript();
+
+        let coords = transcript.utr5_coordinates();
+        assert_eq!(coords.len(), 2);
+        let starts: Vec<u32> = coords.iter().map(|x| x.1).collect();
+        let ends: Vec<u32> = coords.iter().map(|x| x.2).collect();
+        assert_eq!(starts, vec![11, 21]);
+        assert_eq!(ends, vec![15, 23]);
+
+        let strand = transcript.strand_mut();
+        *strand = Strand::Minus;
+        let coords = transcript.utr5_coordinates();
+        assert_eq!(coords.len(), 2);
+        let starts: Vec<u32> = coords.iter().map(|x| x.1).collect();
+        let ends: Vec<u32> = coords.iter().map(|x| x.2).collect();
+        assert_eq!(starts, vec![45, 51]);
+        assert_eq!(ends, vec![45, 55]);
+    }
+
+    #[test]
+    fn test_utr3_coordinates() {
+        let mut transcript = standard_transcript();
+
+        let coords = transcript.utr3_coordinates();
+        assert_eq!(coords.len(), 2);
+        let starts: Vec<u32> = coords.iter().map(|x| x.1).collect();
+        let ends: Vec<u32> = coords.iter().map(|x| x.2).collect();
+        assert_eq!(starts, vec![45, 51]);
+        assert_eq!(ends, vec![45, 55]);
+
+        let strand = transcript.strand_mut();
+        *strand = Strand::Minus;
+        let coords = transcript.utr3_coordinates();
+        assert_eq!(coords.len(), 2);
+        let starts: Vec<u32> = coords.iter().map(|x| x.1).collect();
+        let ends: Vec<u32> = coords.iter().map(|x| x.2).collect();
+        assert_eq!(starts, vec![11, 21]);
+        assert_eq!(ends, vec![15, 23]);
     }
 
     #[test]
