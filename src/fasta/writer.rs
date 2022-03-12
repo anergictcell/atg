@@ -5,6 +5,7 @@ use std::path::Path;
 use std::str::FromStr;
 
 use crate::fasta::FastaReader;
+use crate::models::CoordinateVector;
 use crate::models::{Sequence, Transcript, TranscriptWrite};
 use crate::utils::errors::ReadWriteError;
 
@@ -168,8 +169,8 @@ impl<W: std::io::Write> Writer<W> {
     ///
     ///
     ///
-    /// # Example
-    ///s
+    /// # Examples
+    ///
     /// ```rust
     /// use atg::fasta::Writer;
     /// use atg::fasta::FastaReader;
@@ -210,6 +211,82 @@ impl<W: std::io::Write> Writer<W> {
         match self.inner.into_inner() {
             Ok(res) => Ok(res),
             Err(err) => Err(ReadWriteError::new(err)),
+        }
+    }
+
+    /// Writes the sequence of all exons, split by exon and feature (5' UTR, CDS, 3' UTR)
+    ///
+    /// The start coordinate is 0-based (as with bed files).
+    ///
+    /// The output looks like:
+    /// ```text
+    /// BRCA1   NM_007298.3 chr17   41196311    41197694    -   3UTR    CTGCAGCCAGCCAC...
+    /// BRCA1   NM_007298.3 chr17   41197694    41197819    -   CDS CAATTGGGCAGATGTGTG...
+    /// BRCA1   NM_007298.3 chr17   41199659    41199720    -   CDS GGTGTCCACCCAATTGTG...
+    /// BRCA1   NM_007298.3 chr17   41201137    41201211    -   CDS ATCAACTGGAATGGATGG...
+    /// BRCA1   NM_007298.3 chr17   41203079    41203134    -   CDS ATCTTCAGGGGGCTAGAA...
+    /// BRCA1   NM_007298.3 chr17   41209068    41209152    -   CDS CATGATTTTGAAGTCAGA...
+    /// BRCA1   NM_007298.3 chr17   41215349    41215390    -   CDS GGGTGACCCAGTCTATTA...
+    /// BRCA1   NM_007298.3 chr17   41215890    41215968    -   CDS ATGCTGAGTTTGTGTGTG...
+    /// BRCA1   NM_007298.3 chr17   41219624    41219712    -   CDS ATGCTCGTGTACAAGTTT...
+    /// BRCA1   NM_007298.3 chr17   41222944    41223255    -   CDS AGGGAACCCCTTACCTGG...
+    /// C9orf85 NM_001365057.2  chr9    74526555    74526650    +   5UTR    ATTGACAGAA...
+    /// C9orf85 NM_001365057.2  chr9    74526651    74526752    +   CDS ATGAGCTCCCAGAA...
+    /// C9orf85 NM_001365057.2  chr9    74561922    74562028    +   CDS AAAATTAATGCAAA...
+    /// C9orf85 NM_001365057.2  chr9    74597573    74597573    +   CDS A
+    /// C9orf85 NM_001365057.2  chr9    74597574    74600974    +   3UTR    TGGAGTCTCC...
+    /// ```
+    pub fn write_features(&mut self, transcript: &Transcript) -> Result<(), std::io::Error> {
+        if let Some(fasta_reader) = &mut self.fasta_reader {
+            let mut features: Vec<(&str, CoordinateVector)> = vec![];
+            if transcript.forward() {
+                features.push(("5UTR", transcript.utr5_coordinates()));
+            } else {
+                features.push(("3UTR", transcript.utr3_coordinates()));
+            }
+            features.push(("CDS", transcript.cds_coordinates()));
+            if transcript.forward() {
+                features.push(("3UTR", transcript.utr3_coordinates()));
+            } else {
+                features.push(("5UTR", transcript.utr5_coordinates()));
+            }
+
+            let mut line: Vec<String> = vec![
+                transcript.gene().to_string(),
+                transcript.name().to_string(),
+                transcript.chrom().to_string(),
+                "START".to_string(),
+                "END".to_string(),
+                transcript.strand().to_string(),
+                "FEATURE".to_string(),
+                "SEQUENCE".to_string(),
+            ];
+            for section in features {
+                // 5'UTR, CDS, 3'UTR
+                for feature in section.1 {
+                    let mut sequence = fasta_reader.read_sequence(
+                        feature.0,
+                        feature.1.into(),
+                        feature.2.into(),
+                    )?;
+
+                    if !transcript.forward() {
+                        sequence.reverse_complement();
+                    }
+                    line[3] = (feature.1 - 1).to_string(); // start
+                    line[4] = feature.2.to_string(); // end
+                    line[6] = section.0.to_string();
+                    line[7] = sequence.to_string();
+                    self.inner.write_all(line.join("\t").as_bytes())?;
+                    self.inner.write_all("\n".as_bytes())?;
+                }
+            }
+            Ok(())
+        } else {
+            Err(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                "no fasta reader specified",
+            ))
         }
     }
 }

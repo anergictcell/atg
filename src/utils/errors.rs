@@ -364,3 +364,9 @@ impl From<TryFromIntError> for FastaError {
         }
     }
 }
+
+impl From<FastaError> for std::io::Error {
+    fn from(err: FastaError) -> Self {
+        Self::new(std::io::ErrorKind::Other, err)
+    }
+}

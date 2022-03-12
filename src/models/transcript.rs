@@ -6,6 +6,8 @@ use crate::models::utils::{CdsStat, Strand};
 use crate::models::{Exon, Frame};
 use crate::utils::errors::BuildTranscriptError;
 
+pub type CoordinateVector<'a> = Vec<(&'a str, u32, u32)>;
+
 /// Transcript is the central data structure of `atg`
 ///
 /// It holds the genomic representation of transcript. The coordinates are 1-based
@@ -269,8 +271,8 @@ impl Transcript {
     }
 
     /// Returns the coordinates of each exon
-    pub fn exon_coordinates(&self) -> Vec<(&str, u32, u32)> {
-        let mut coords: Vec<(&str, u32, u32)> = vec![];
+    pub fn exon_coordinates(&self) -> CoordinateVector {
+        let mut coords: CoordinateVector = vec![];
         for exon in self.exons() {
             coords.push((self.chrom(), exon.start(), exon.end()))
         }
@@ -281,8 +283,8 @@ impl Transcript {
     ///
     /// Non-coding exons are skipped and for all other exons
     /// the coordinates of the coding part are returned
-    pub fn cds_coordinates(&self) -> Vec<(&str, u32, u32)> {
-        let mut coords: Vec<(&str, u32, u32)> = vec![];
+    pub fn cds_coordinates(&self) -> CoordinateVector {
+        let mut coords: CoordinateVector = vec![];
         for exon in self.exons() {
             if exon.is_coding() {
                 coords.push((
@@ -300,8 +302,8 @@ impl Transcript {
     /// Non-coding exons are reported fully, the UTR sections of
     /// partially-coding exons are returned as well as the coordinates
     /// of complete non-coding exons.
-    pub fn utr_coordinates(&self) -> Vec<(&str, u32, u32)> {
-        let mut coords: Vec<(&str, u32, u32)> = vec![];
+    pub fn utr_coordinates(&self) -> CoordinateVector {
+        let mut coords: CoordinateVector = vec![];
         for exon in self.exons() {
             if exon.is_coding() {
                 let cds_start = exon.cds_start().unwrap();
@@ -324,7 +326,7 @@ impl Transcript {
     /// Non-coding exons are reported fully, the 5' UTR sections of
     /// partially-coding exons are returned as well as the coordinates
     /// of complete non-coding exons upstream of the CDS.
-    pub fn utr5_coordinates(&self) -> Vec<(&str, u32, u32)> {
+    pub fn utr5_coordinates(&self) -> CoordinateVector {
         let mut utr = self.utr_coordinates();
         if self.is_coding() {
             if self.forward() {
@@ -343,7 +345,7 @@ impl Transcript {
     /// The 3' UTR sections of partially-coding exons are returned
     /// as well as the coordinates of complete non-coding exons
     /// downstream of the CDS.
-    pub fn utr3_coordinates(&self) -> Vec<(&str, u32, u32)> {
+    pub fn utr3_coordinates(&self) -> CoordinateVector {
         let mut utr = self.utr_coordinates();
         if self.is_coding() {
             if self.forward() {

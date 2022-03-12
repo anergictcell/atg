@@ -42,7 +42,7 @@ fn parse_cli_args() -> ArgMatches<'static> {
             Arg::with_name("to")
                 .short("t")
                 .long("to")
-                .possible_values(&["refgene", "gtf", "bed", "fasta", "fasta-split", "raw"])
+                .possible_values(&["refgene", "gtf", "bed", "fasta", "fasta-split", "feature-sequence", "raw"])
                 .case_insensitive(true)
                 .value_name("file-format")
                 .help("data format of the output")
@@ -183,6 +183,14 @@ fn write_output(
                 writer.writeln_single_transcript(&tx)?;
             }
         }
+        "feature-sequence" => {
+            let mut writer = fasta::Writer::from_file(output_fd)?;
+            writer.fasta_reader(FastaReader::from_file(fasta_reference.unwrap())?);
+            for tx in transcripts {
+                writer.write_features(&tx)?
+            }
+        }
+
         "raw" => {
             for t in transcripts {
                 println!("{}", t);
