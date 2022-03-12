@@ -72,7 +72,7 @@ fn parse_cli_args() -> ArgMatches<'static> {
                 .long("gtf-source")
                 .short("-g")
                 .value_name("source")
-                .help("The feature source to indicate in GTF files (required with >>gtf<<)")
+                .help("The feature source to indicate in GTF files (optional with >>gtf<<)")
                 .display_order(1000)
                 .takes_value(true)
                 .required_if("to", "gtf")
