@@ -149,7 +149,7 @@ impl FromStr for Sequence {
     type Err = AtgError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut sequence: Vec<Nucleotide> = vec![];
-        for c in s.chars(){
+        for c in s.chars() {
             sequence.push(Nucleotide::new(&c)?)
         }
         Ok(Self { sequence })

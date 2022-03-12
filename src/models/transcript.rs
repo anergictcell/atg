@@ -263,6 +263,7 @@ impl Transcript {
         }
     }
 
+    /// Returns the coordinates of each exon
     pub fn exon_coordinates(&self) -> Vec<(&str, u32, u32)> {
         let mut coords: Vec<(&str, u32, u32)> = vec![];
         for exon in self.exons() {
@@ -271,6 +272,10 @@ impl Transcript {
         coords
     }
 
+    /// Returns the coordinates of each exon's coding sequence
+    ///
+    /// Non-coding exons are skipped and for all other exons
+    /// the coordinates of the coding part are returned
     pub fn cds_coordinates(&self) -> Vec<(&str, u32, u32)> {
         let mut coords: Vec<(&str, u32, u32)> = vec![];
         for exon in self.exons() {
@@ -280,6 +285,30 @@ impl Transcript {
                     exon.cds_start().unwrap(),
                     exon.cds_end().unwrap(),
                 ))
+            }
+        }
+        coords
+    }
+
+    /// Returns the coordinates of all non-coding sequences
+    ///
+    /// Non-coding exons are reported fully, the UTR sections of
+    /// partially-coding exons are returned as well as the coordinates
+    /// of complete non-coding exons.
+    pub fn utr_coordinates(&self) -> Vec<(&str, u32, u32)> {
+        let mut coords: Vec<(&str, u32, u32)> = vec![];
+        for exon in self.exons() {
+            if exon.is_coding() {
+                let cds_start = exon.cds_start().unwrap();
+                let cds_end = exon.cds_end().unwrap();
+                if cds_start > exon.start() {
+                    coords.push((self.chrom(), exon.start(), cds_start - 1))
+                }
+                if cds_end < exon.end() {
+                    coords.push((self.chrom(), cds_end + 1, exon.end()))
+                }
+            } else {
+                coords.push((self.chrom(), exon.start(), exon.end()))
             }
         }
         coords
@@ -530,5 +559,49 @@ impl<'a> TranscriptBuilder<'a> {
             score: self.score,
         };
         Ok(t)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::tests::transcripts::standard_transcript;
+
+    #[test]
+    fn test_utr_coordinates() {
+        let transcript = standard_transcript();
+
+        let coords = transcript.utr_coordinates();
+
+        assert_eq!(coords.len(), 4);
+        let starts: Vec<u32> = coords.iter().map(|x| x.1).collect();
+        let ends: Vec<u32> = coords.iter().map(|x| x.2).collect();
+        assert_eq!(starts, vec![11, 21, 45, 51]);
+        assert_eq!(ends, vec![15, 23, 45, 55]);
+    }
+
+    #[test]
+    fn test_cds_coordinates() {
+        let transcript = standard_transcript();
+
+        let coords = transcript.cds_coordinates();
+
+        assert_eq!(coords.len(), 3);
+        let starts: Vec<u32> = coords.iter().map(|x| x.1).collect();
+        let ends: Vec<u32> = coords.iter().map(|x| x.2).collect();
+        assert_eq!(starts, vec![24, 31, 41]);
+        assert_eq!(ends, vec![25, 35, 44]);
+    }
+
+    #[test]
+    fn test_exon_coordinates() {
+        let transcript = standard_transcript();
+
+        let coords = transcript.exon_coordinates();
+
+        assert_eq!(coords.len(), 5);
+        let starts: Vec<u32> = coords.iter().map(|x| x.1).collect();
+        let ends: Vec<u32> = coords.iter().map(|x| x.2).collect();
+        assert_eq!(starts, vec![11, 21, 31, 41, 51]);
+        assert_eq!(ends, vec![15, 25, 35, 45, 55]);
     }
 }
