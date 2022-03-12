@@ -86,7 +86,11 @@ fn parse_cli_args() -> ArgMatches<'static> {
                 .help("Path to reference genome fasta file. (required with >>fasta<< and >>fasta-split<<)")
                 .display_order(1000)
                 .takes_value(true)
-                .required_if("to", "fasta"),
+                .required_ifs(&[
+                    ("to", "fasta"),
+                    ("to", "fasta-split"),
+                    ("to", "feature-sequence")
+                ])
         )
         .arg(
             Arg::with_name("fasta_format")
