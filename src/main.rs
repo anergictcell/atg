@@ -21,12 +21,16 @@ fn parse_cli_args() -> ArgMatches<'static> {
         .about(
             "Convert transcript data from and to different file formats\n\n\
             ATG supports the following formats:\n\
-              * refgene - RefGene format (one transcript per line)\n\
-              * gtf     - GTF2.2 format\n\
-              * bed     - Bedfile (one transcript per line)\n\
-              * fasta   - Nucleotide sequence. There are multiple formatting options available"
+              * refgene          - RefGene format (one transcript per line)\n\
+              * gtf              - GTF2.2 format\n\
+              * bed              - Bedfile (one transcript per line)\n\
+              * fasta            - Nucleotide sequence. There are multiple formatting options available\n\
+              * feature-sequence - Nucleotide sequence for every feature"
         )
-        .after_help(env!("CARGO_PKG_HOMEPAGE"))
+        .after_help(format!(
+            "For more detailed usage information visit {}\n",
+            env!("CARGO_PKG_HOMEPAGE")
+        ).as_str())
         .arg(
             Arg::with_name("from")
                 .short("f")
@@ -72,7 +76,7 @@ fn parse_cli_args() -> ArgMatches<'static> {
                 .long("gtf-source")
                 .short("-g")
                 .value_name("source")
-                .help("The feature source to indicate in GTF files (optional with >>gtf<<)")
+                .help("The feature source to indicate in GTF files (optional with `--output gtf`)")
                 .display_order(1000)
                 .takes_value(true)
                 .required_if("to", "gtf")
@@ -83,7 +87,7 @@ fn parse_cli_args() -> ArgMatches<'static> {
                 .long("reference")
                 .short("-r")
                 .value_name("/path/to/reference.fasta")
-                .help("Path to reference genome fasta file. (required with >>fasta<< and >>fasta-split<<)")
+                .help("Path to reference genome fasta file. (required with `--output [fasta | fasta-split | feature-sequence]`)")
                 .display_order(1000)
                 .takes_value(true)
                 .required_ifs(&[
@@ -99,7 +103,7 @@ fn parse_cli_args() -> ArgMatches<'static> {
                 .value_name("format")
                 .help(
                     "Which part of the transcript to translate. \
-                       (This open is only needed when generating \
+                       (This option is only needed when generating \
                        fasta output)",
                 )
                 .display_order(1001)
