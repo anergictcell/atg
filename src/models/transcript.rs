@@ -6,7 +6,16 @@ use crate::models::utils::{CdsStat, Strand};
 use crate::models::{Exon, Frame};
 use crate::utils::errors::BuildTranscriptError;
 
-pub type CoordinateVector<'a> = Vec<(&'a str, u32, u32)>;
+/// Type shortcut for a vector of [`Coordinate`]
+pub type CoordinateVector<'a> = Vec<Coordinate<'a>>;
+
+/// Type shortcut for typical coordinate data
+///
+/// This is a tuple of
+/// - chrom
+/// - start-position
+/// - end-position
+pub type Coordinate<'a> = (&'a str, u32, u32);
 
 /// Transcript is the central data structure of `atg`
 ///
