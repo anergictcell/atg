@@ -13,13 +13,23 @@ The library is still in its infancy but works so far and can handle what it's su
 ### ATG command line tool
 
 #### Install
+##### cargo
 The easiest way to install _ATG_ is to use `cargo` (if you have `cargo` and `rust` installed)
 ```bash
 cargo install atg
 ```
 
-### Download
-You can download pre-build binaries for Linux and Mac (M1) of all recent releases from [Github](https://github.com/anergictcell/atg/releases)
+##### Pre-built binaries
+You can download pre-built binaries for Linux and Mac (M1) from [Github](https://github.com/anergictcell/atg/releases). Save the downloaded binaries in a folder in your `PATH` or create a symlink as `atg`.
+
+##### From source
+You can also build _ATG_ from source (if you have the rust toolchains installed):
+
+```bash
+git clone https://github.com/anergictcell/atg.git
+cd atg
+cargo build --release
+````
 
 #### Run
 Convert a GTF file to a RefGene file
@@ -37,21 +47,42 @@ Convert RefGene to bed
 atg --from refgene --to bed --input /path/to/input.refgene --output /path/to/output.bed
 ```
 
-##### Other `--output` formats
+##### Supported `--output` formats
+
 ###### gtf
 Output in GTF format.
 
-You can specify a `source` using the `--gtf-source`/`-g` option. Defaults to `atg`
+```text
+chr9    ncbiRefSeq.2021-05-17   transcript  74526555    74600974    .   +   .   gene_id "C9orf85"; transcript_id "NM_001365057.2";  gene_name "C9orf85";
+chr9    ncbiRefSeq.2021-05-17   exon    74526555    74526752    .   +   .   gene_id "C9orf85"; transcript_id "NM_001365057.2"; exon_number "1"; exon_id "NM_001365057.2.1"; gene_name "C9orf85";
+chr9    ncbiRefSeq.2021-05-17   5UTR    74526555    74526650    .   +   .   gene_id "C9orf85"; transcript_id "NM_001365057.2"; exon_number "1"; exon_id "NM_001365057.2.1"; gene_name "C9orf85";
+chr9    ncbiRefSeq.2021-05-17   CDS 74526651    74526752    .   +   0   gene_id "C9orf85"; transcript_id "NM_001365057.2"; exon_number "1"; exon_id "NM_001365057.2.1"; gene_name "C9orf85";
+chr9    ncbiRefSeq.2021-05-17   exon    74561922    74562028    .   +   .   gene_id "C9orf85"; transcript_id "NM_001365057.2"; exon_number "2"; exon_id "NM_001365057.2.2"; gene_name "C9orf85";
+chr9    ncbiRefSeq.2021-05-17   CDS 74561922    74562026    .   +   0   gene_id "C9orf85"; transcript_id "NM_001365057.2"; exon_number "2"; exon_id "NM_001365057.2.2"; gene_name "C9orf85";
+...
+```
+
+You can specify the value of the `source` column manually using the `--gtf-source`/`-g` option. Defaults to `atg`
+
+###### refgene
+Output in the refGene format, as used by some UCSC and NCBI RefSeq services 
+
+```text
+0   NM_001101.5 chr7    -   5566778 5570232 5567378 5569288 6   5566778,5567634,5567911,5568791,5569165,5570154,    5567522,5567816,5568350,5569031,5569294,5570232,    0   ACTB    cmpl    cmpl    0,1,0,0,0,-1,
+0   NM_001203247.2  chr7    -   148504474   148581383   148504737   148544390   20  148504474,148506162,148506401,148507424,148508716,148511050,148512005,148512597,148513775,148514313,148514968,148516687,148523560,148524255,148525831,148526819,148529725,148543561,148544273,148581255,    148504798,148506247,148506482,148507506,148508812,148511229,148512131,148512638,148513870,148514483,148515209,148516779,148523724,148524358,148525972,148526940,148529842,148543690,148544397,148581383,    0   EZH2    cmpl    cmpl    2,1,1,0,0,1,1,2,0,1,0,1,2,1,1,0,0,0,0,-1,
+0   NM_001203248.2  chr7    -   148504474   148581383   148504737   148544390   20  148504474,148506162,148506401,148507424,148508716,148511050,148512005,148512597,148513775,148514313,148514968,148516687,148523560,148524255,148525831,148526819,148529725,148543588,148544273,148581255,    148504798,148506247,148506482,148507506,148508812,148511229,148512131,148512638,148513870,148514483,148515209,148516779,148523724,148524358,148525972,148526940,148529842,148543690,148544397,148581383,    0   EZH2    cmpl    cmpl    2,1,1,0,0,1,1,2,0,1,0,1,2,1,1,0,0,0,0,-1,
+0   NM_001354750.2  chr11   +   113930432   114127487   113934022   114121277   7   113930432,113933932,114027058,114057673,114112888,114117919,114121047,  113930864,113935290,114027156,114057760,114113059,114118087,114127487,  0   ZBTB16  cmpl    cmpl    -1,0,2,1,1,1,1,
+```
 
 ###### fasta
-cDNA sequence of all transcripts into one file. Please note that the sequence is stranded.
+Writes the cDNA sequence of all transcripts into one file. Please note that the sequence is stranded.
 
-This target format requires a reference genome fasta file that must be specified using `-r <PATH>` or `--reference <PATH>`.
+This target format requires a reference genome fasta file that must be specified using `--reference`/`-r`.
 
 *This output allows different `--fasta-format` options:*
-- `transcript` --> The full transcript sequence (from the genomic start to end position)
-- `exons` --> The cDNA sequence of the processed transcript, i.e. the sequence of all exons, including non-coding exons.
-- `cds` --> The CDS of the transcript
+- `transcript`: The full transcript sequence (from the genomic start to end position, including introns)
+- `exons`: The cDNA sequence of the processed transcript, i.e. the sequence of all exons, including non-coding exons.
+- `cds` (default): The CDS of the transcript
 
 ```text
 >NM_007298.3 BRCA1
@@ -71,17 +102,20 @@ TAAAAAGTGA
 ```
 
 ###### fasta-split
-Like `fasta` above, but one file for each transcript.
+Like `fasta` above, but one file for each transcript. Instead of an output file, you must specify an output directory, _ATG_ will save each transcript as `<Transcript_name>.fasta`, e.g.: `NM_001365057.2.fasta`.
 
-*This output also allows different `--fasta-format` options:*
-- `transcript` --> The full transcript sequence (from the genomic start to end position)
-- `exons` --> The cDNA sequence of the processed transcript, i.e. the sequence of all exons, including non-coding exons.
-- `cds` --> The CDS of the transcript
+This target format requires a reference genome fasta file that must be specified using `--reference`/`-r`.
+
+*This output allows different `--fasta-format` options:*
+- `transcript`: The full transcript sequence (from the genomic start to end position, including introns)
+- `exons`: The cDNA sequence of the processed transcript, i.e. the sequence of all exons, including non-coding exons.
+- `cds` (default): The CDS of the transcript
 
 ###### feature-sequence
 cDNA sequence of each feature (5' UTR, CDS, 3'UTR), each in a separate row.
 
-**Example**:
+This target format requires a reference genome fasta file that must be specified using `--reference`/`-r`.
+
 ```text
 BRCA1   NM_007298.3 chr17   41196311    41197694    -   3UTR    CTGCAGCCAGCCAC...
 BRCA1   NM_007298.3 chr17   41197694    41197819    -   CDS CAATTGGGCAGATGTGTG...
@@ -103,7 +137,6 @@ C9orf85 NM_001365057.2  chr9    74597574    74600974    +   3UTR    TGGAGTCTCC..
 ###### raw
 This is mainly useful for debugging, as it gives a quick glimpse into the Exons and CDS coordinates of the transcripts.
 
-
 Yes, that's it. Nothing more at the moment.
 
 Ok, you can also change the verbosity, by adding `-v` (show info messages), `-vv` (debug), `-vvv` (trace)
@@ -115,6 +148,10 @@ Of course, all commands also have shorthand parameters:
 - `-t`, `--to`
 - `-i`, `--input`
 - `-o`, `--output`
+
+
+#### Tips
+Reading in GTF files is rather slow, due to the complexity of the format. If you need to repeatedly read in data from GTF, I recommend to generate a RefGene file once and use this as input for subsequent steps. (I'm also developing a binary format to improve performance even more.)
 
 ### ATG as library
 [The library API is mostly documented inline and available on docs.rs](https://docs.rs/atg)
@@ -148,6 +185,7 @@ match writer.write_transcripts(&transcripts) {
 - [x] Bed module to generate bed files with exons and introns
 - [ ] Compare transcripts from two different inputs
 - [x] Add fasta reading for nt and aa sequence outputs
+- [ ] Binary data format
 
 ## Known issues
 ### GTF parsing

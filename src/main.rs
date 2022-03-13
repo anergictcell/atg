@@ -194,7 +194,6 @@ fn write_output(
                 writer.write_features(&tx)?
             }
         }
-
         "raw" => {
             for t in transcripts {
                 println!("{}", t);
