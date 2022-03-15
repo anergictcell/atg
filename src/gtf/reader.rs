@@ -24,7 +24,7 @@ use crate::utils::errors::ReadWriteError;
 /// use atg::models::TranscriptRead;
 ///
 /// // create a reader from the tests GTF file
-/// let reader = Reader::from_file("tests/data/tests.gtf");
+/// let reader = Reader::from_file("tests/data/example.gtf");
 /// assert_eq!(reader.is_ok(), true);
 ///
 /// // parse the GTF file
@@ -33,7 +33,7 @@ use crate::utils::errors::ReadWriteError;
 ///     .transcripts()
 ///     .unwrap();
 ///
-/// assert_eq!(transcripts.len(), 10);
+/// assert_eq!(transcripts.len(), 27);
 /// ```
 pub struct Reader<R> {
     inner: std::io::BufReader<R>,
@@ -52,7 +52,7 @@ impl Reader<File> {
     /// use atg::models::TranscriptRead;
     ///
     /// // create a reader from the tests GTF file
-    /// let reader = Reader::from_file("tests/data/tests.gtf");
+    /// let reader = Reader::from_file("tests/data/example.gtf");
     /// assert_eq!(reader.is_ok(), true);
     ///
     /// // parse the GTF file
@@ -61,7 +61,7 @@ impl Reader<File> {
     ///     .transcripts()
     ///     .unwrap();
     ///
-    /// assert_eq!(transcripts.len(), 10);
+    /// assert_eq!(transcripts.len(), 27);
     /// ```
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self, ReadWriteError> {
         match File::open(path.as_ref()) {
@@ -128,7 +128,7 @@ impl<R: std::io::Read> TranscriptRead for Reader<R> {
     /// use atg::models::TranscriptRead;
     ///
     /// // create a reader from the tests GTF file
-    /// let reader = Reader::from_file("tests/data/tests.gtf");
+    /// let reader = Reader::from_file("tests/data/example.gtf");
     ///
     /// // parse the GTF file
     /// let transcripts = reader
@@ -136,7 +136,7 @@ impl<R: std::io::Read> TranscriptRead for Reader<R> {
     ///     .transcripts()
     ///     .unwrap();
     ///
-    /// assert_eq!(transcripts.len(), 10);
+    /// assert_eq!(transcripts.len(), 27);
     /// ```
     fn transcripts(&mut self) -> Result<Transcripts, ReadWriteError> {
         let mut transcript_hashmap: HashMap<String, GtfRecordsGroup> = HashMap::new();

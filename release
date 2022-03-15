@@ -14,11 +14,15 @@ confirmation() {
 echo -ne "Preparing for release ${VERSION}. Is this correct? [y/n] "
 confirmation
 
-echo "Creating release branch"
-git checkout main && \
-git pull && \
-git checkout -b release/${VERSION} && \
-git push -u origin release/${VERSION}
+if git rev-parse --quiet --verify $REVISION > /dev/null; then
+    echo "Release branch exists already"
+else
+  echo "Creating release branch"
+  git checkout main && \
+  git pull && \
+  git checkout -b release/${VERSION} && \
+  git push -u origin release/${VERSION}
+fi
 
 echo -ne "Did you finish merging all features into 'release/${VERSION}'? [y/n] "
 confirmation
@@ -29,13 +33,31 @@ cargo clippy && \
 cargo fmt && \
 cargo test
 
+echo "Running basic check of GTF and RefGene convertion"
+diff \
+<( cargo run -- \
+  -f gtf -i tests/data/example.gtf \
+  -t refgene -o /dev/stdout 2> /dev/null | \
+  sort ) \
+tests/data/example.refgene
+
+diff \
+<( cargo run -- \
+  -f refgene -i tests/data/example.refgene \
+  -t gtf -g ncbiRefSeq.2021-05-17 \
+  -o /dev/stdout 2> /dev/null | \
+  cut -f1-5,7-8 | sort ) \
+<( cut -f1-5,7-8 tests/data/example.gtf)
+
+
 echo "Updating version number"
 sed -i .bck "s/^version =.*$/version = \"${VERSION}\"/" ./Cargo.toml
 cargo build
 
 git commit -am "Release ${VERSION}"
 git tag ${VERSION}
-git push --follow-tags
+git push
+git push --tags
 
 echo -ne "Do you want to build the binaries now? [y/n] "
 confirmation
