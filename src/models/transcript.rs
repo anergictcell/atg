@@ -1,7 +1,7 @@
 use std::cmp::PartialEq;
 use std::fmt;
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 use crate::models::codon::Codon;
 use crate::models::utils::{CdsStat, Strand};

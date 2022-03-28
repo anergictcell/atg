@@ -2,8 +2,7 @@ use std::fmt;
 use std::str::FromStr;
 
 use log::debug;
-use serde::{Serialize, Deserialize};
-
+use serde::{Deserialize, Serialize};
 
 use crate::models::{Transcript, Transcripts};
 use crate::utils::errors::ReadWriteError;

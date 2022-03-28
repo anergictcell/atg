@@ -1,6 +1,6 @@
-use std::fmt;
-use serde::{Serialize, Deserialize};
 use crate::models::Frame;
+use serde::{Deserialize, Serialize};
+use std::fmt;
 
 /// Represents a genomic exon.
 ///

@@ -2,7 +2,7 @@ use std::fmt;
 use std::ops::Add;
 use std::str::FromStr;
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 /// Frame indicates the reading frame offset of an Exon
 ///
