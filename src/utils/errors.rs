@@ -61,6 +61,14 @@ impl From<String> for AtgError {
     }
 }
 
+impl From<Box<bincode::ErrorKind>> for AtgError {
+    fn from(e: Box<bincode::ErrorKind>) -> AtgError {
+        AtgError {
+            message: e.to_string(),
+        }
+    }
+}
+
 pub struct ParseGtfError {
     pub message: String,
 }

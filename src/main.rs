@@ -1,11 +1,14 @@
 #[macro_use]
 extern crate log;
+use std::fs::File;
 use std::process;
+
+use bincode::{deserialize_from, serialize_into};
+use clap::{App, Arg, ArgMatches};
 
 use atg::fasta::FastaReader;
 use atg::models::Transcripts;
 use atg::utils::errors::AtgError;
-use clap::{App, Arg, ArgMatches};
 
 use atg::bed;
 use atg::fasta;
@@ -25,7 +28,8 @@ fn parse_cli_args() -> ArgMatches<'static> {
               * gtf              - GTF2.2 format\n\
               * bed              - Bedfile (one transcript per line)\n\
               * fasta            - Nucleotide sequence. There are multiple formatting options available\n\
-              * feature-sequence - Nucleotide sequence for every feature"
+              * feature-sequence - Nucleotide sequence for every feature\n\
+              * bin              - Binary format"
         )
         .after_help(format!(
             "For more detailed usage information visit {}\n",
@@ -35,7 +39,7 @@ fn parse_cli_args() -> ArgMatches<'static> {
             Arg::with_name("from")
                 .short("f")
                 .long("from")
-                .possible_values(&["refgene", "gtf"])
+                .possible_values(&["refgene", "gtf", "bin"])
                 .case_insensitive(true)
                 .value_name("file-format")
                 .help("Data format of input file")
@@ -46,7 +50,7 @@ fn parse_cli_args() -> ArgMatches<'static> {
             Arg::with_name("to")
                 .short("t")
                 .long("to")
-                .possible_values(&["refgene", "gtf", "bed", "fasta", "fasta-split", "feature-sequence", "raw"])
+                .possible_values(&["refgene", "gtf", "bed", "fasta", "fasta-split", "feature-sequence", "raw", "bin", "none"])
                 .case_insensitive(true)
                 .value_name("file-format")
                 .help("data format of the output")
@@ -124,11 +128,15 @@ fn parse_cli_args() -> ArgMatches<'static> {
 }
 
 fn read_input_file(input_format: &str, input_fd: &str) -> Result<Transcripts, AtgError> {
-    debug!("Reading input data");
+    debug!("Reading {} transcripts from {}", input_format, input_fd);
 
     let transcripts = match input_format {
         "refgene" => read_transcripts(refgene::Reader::from_file(input_fd))?,
         "gtf" => read_transcripts(gtf::Reader::from_file(input_fd))?,
+        "bin" => {
+            let reader = File::open(input_fd)?;
+            deserialize_from(reader)?
+        }
         _ => {
             return Err(AtgError::from(format!(
                 "Invalid file-format: {}",
@@ -152,6 +160,8 @@ fn write_output(
     fasta_format: Option<&str>,
     transcripts: Transcripts,
 ) -> Result<(), AtgError> {
+    debug!("Writing transcripts as {} to {}", output_format, output_fd);
+
     let _ = match output_format {
         "refgene" => {
             let mut writer = refgene::Writer::from_file(output_fd)?;
@@ -198,6 +208,10 @@ fn write_output(
                 writer.write_features(&tx)?
             }
         }
+        "bin" => {
+            let writer = File::create(output_fd)?;
+            serialize_into(&writer, &transcripts)?;
+        }
         "raw" => {
             for t in transcripts {
                 println!("{}", t);
@@ -206,6 +220,7 @@ fn write_output(
                 }
             }
         }
+        "none" => {}
         _ => return Err(AtgError::new("Invalid >>to<< parameter")),
     };
 
@@ -227,27 +242,15 @@ fn main() {
     let fasta_format = cli_commands.value_of("fasta_format");
     let fasta_reference = cli_commands.value_of("fasta_reference");
 
-    trace!("Parameters:");
-    trace!(
-        "Input Format: {} | Input Source: {}",
-        input_format,
-        input_fd
-    );
-    trace!(
-        "Output Format: {} | Output Target: {}",
-        output_format,
-        output_fd
-    );
-
     let transcripts = match read_input_file(input_format, input_fd) {
         Ok(x) => x,
         Err(err) => {
-            println!("{}", err);
+            println!("\x1b[1;31mError:\x1b[0m {}", err);
+            println!("\nPlease check `atg --help` for more options\n");
             process::exit(1);
         }
     };
 
-    debug!("Writing ouput data");
     match write_output(
         output_format,
         output_fd,
@@ -256,7 +259,7 @@ fn main() {
         fasta_format,
         transcripts,
     ) {
-        Ok(_) => debug!("Finshed writing output data"),
+        Ok(_) => debug!("All done here."),
         Err(err) => {
             println!("\x1b[1;31mError:\x1b[0m {}", err);
             println!("\nPlease check `atg --help` for more options\n");
