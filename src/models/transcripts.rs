@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+use serde::{Deserialize, Serialize};
+
 use crate::models::Transcript;
 
 /// A convinience wrapper to handle  large amounts of [`Transcript`]s
@@ -30,6 +32,7 @@ use crate::models::Transcript;
 /// assert!(transcripts.by_name("Foo").is_empty());
 /// assert!(transcripts.by_gene("Bar").is_empty());
 /// ```
+#[derive(Serialize, Deserialize)]
 pub struct Transcripts {
     list: Vec<Transcript>,
     name: HashMap<String, Vec<usize>>,

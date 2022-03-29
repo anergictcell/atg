@@ -277,14 +277,22 @@ impl FromStr for GtfRecord {
     }
 }
 
-fn parse_attributes(attrs: &str) -> Result<(String, String), ParseGtfError> {
-    let mut gene: Option<String> = None;
-    let mut transcript: Option<String> = None;
+fn parse_attributes(mut attrs: &str) -> Result<(String, String), ParseGtfError> {
+    let mut gene = String::with_capacity(10);
+    let mut transcript = String::with_capacity(20);
 
-    for attr in attrs.trim_end_matches(';').split(';') {
-        match parse_attribute(attr) {
-            Ok(("gene_id", value)) => gene = Some(value.to_string()),
-            Ok(("transcript_id", value)) => transcript = Some(value.to_string()),
+    while let Some(idx) = attrs.find(';') {
+        match parse_attribute(attrs[..idx].trim()) {
+            Ok(("gene_id", value)) => {
+                gene.clear();
+                gene.push_str(value);
+                gene.shrink_to_fit();
+            }
+            Ok(("transcript_id", value)) => {
+                transcript.clear();
+                transcript.push_str(value);
+                transcript.shrink_to_fit();
+            }
             Ok((_, _)) => {} // ignore all other attributes
             Err(err) => {
                 return Err(ParseGtfError::from_chain(
@@ -296,40 +304,28 @@ fn parse_attributes(attrs: &str) -> Result<(String, String), ParseGtfError> {
                 ));
             }
         }
+
+        if !gene.is_empty() && !transcript.is_empty() {
+            return Ok((gene, transcript));
+        }
+        attrs = attrs[(idx + 1)..].trim();
     }
-    match (gene, transcript) {
-        (Some(gene), Some(transcript)) => Ok((gene, transcript)),
-        (None, None) => {
-            return Err(ParseGtfError {
-                message: format!("missing gene_id and transcript_id in {}", attrs),
-            })
-        }
-        (None, Some(_)) => {
-            return Err(ParseGtfError {
-                message: format!("missing gene_id in {}", attrs),
-            })
-        }
-        (Some(_), None) => {
-            return Err(ParseGtfError {
-                message: format!("missing transcript_id in {}", attrs),
-            })
-        }
-    }
+    Err(ParseGtfError::new(format!(
+        "Missing gene_id or transcript_id\n>>>{}<<<",
+        attrs
+    )))
 }
 
 fn parse_attribute(attr: &str) -> Result<(&str, &str), ParseGtfError> {
-    let items: Vec<&str> = attr.trim().splitn(2, ' ').collect();
-    match items.len() {
-        2 => Ok((
-            items[0],
-            items[1].trim_end_matches('\"').trim_start_matches('\"'),
-        )),
-        _ => Err(ParseGtfError {
+    if let Some(idx) = attr.find(' ') {
+        Ok((&attr[..idx], attr[idx + 1..].trim_matches('\"')))
+    } else {
+        Err(ParseGtfError {
             message: format!(
                 "Unable to parse the attribute\n\n{}\nPlease check your GTF input.",
                 attr
             ),
-        }),
+        })
     }
 }
 

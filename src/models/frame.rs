@@ -2,6 +2,8 @@ use std::fmt;
 use std::ops::Add;
 use std::str::FromStr;
 
+use serde::{Deserialize, Serialize};
+
 /// Frame indicates the reading frame offset of an Exon
 ///
 /// It is based on GTF nomenclature:
@@ -21,7 +23,7 @@ use std::str::FromStr;
 ///
 /// assert_eq!(frame_str, frame_int);
 /// ```
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Frame {
     None, // used for non-coding exons. Converts to `-1` or `.`.
     Zero, // e.g. --ATG....

@@ -1,5 +1,9 @@
 # Changelog
 
+- Support writing Fasta files
+- Support sequence output per feature
+- Improved error handling
+
 ## 0.3
 - Support writing bed files
 - Update CICD and proper release guidelines

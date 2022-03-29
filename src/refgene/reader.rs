@@ -4,8 +4,6 @@ use std::io::{BufRead, BufReader};
 use std::path::Path;
 use std::str::FromStr;
 
-use log::debug;
-
 use crate::models::Transcripts;
 use crate::refgene::constants::*;
 use crate::utils::errors::ParseRefGeneError;
@@ -28,7 +26,7 @@ use crate::utils::exon_cds_overlap;
 /// use atg::models::TranscriptRead;
 ///
 /// // create a reader from the tests RefGene file
-/// let reader = Reader::from_file("tests/data/test.refgene");
+/// let reader = Reader::from_file("tests/data/example.refgene");
 /// assert_eq!(reader.is_ok(), true);
 ///
 /// // parse the RefGene file
@@ -37,7 +35,7 @@ use crate::utils::exon_cds_overlap;
 ///     .transcripts()
 ///     .unwrap();
 ///
-/// assert_eq!(transcripts.len(), 10);
+/// assert_eq!(transcripts.len(), 27);
 /// ```
 pub struct Reader<R> {
     inner: std::io::BufReader<R>,
@@ -56,7 +54,7 @@ impl Reader<File> {
     /// use atg::models::TranscriptRead;
     ///
     /// // create a reader from the tests RefGene file
-    /// let reader = Reader::from_file("tests/data/test.refgene");
+    /// let reader = Reader::from_file("tests/data/example.refgene");
     /// assert_eq!(reader.is_ok(), true);
     ///
     /// // parse the RefGene file
@@ -65,7 +63,7 @@ impl Reader<File> {
     ///     .transcripts()
     ///     .unwrap();
     ///
-    /// assert_eq!(transcripts.len(), 10);
+    /// assert_eq!(transcripts.len(), 27);
     /// ```
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self, ReadWriteError> {
         match File::open(path.as_ref()) {
@@ -133,7 +131,7 @@ impl<R: std::io::Read> TranscriptRead for Reader<R> {
     /// use atg::models::TranscriptRead;
     ///
     /// // create a reader from the tests RefGene file
-    /// let reader = Reader::from_file("tests/data/test.refgene");
+    /// let reader = Reader::from_file("tests/data/example.refgene");
     /// assert_eq!(reader.is_ok(), true);
     ///
     /// // parse the RefGene file
@@ -142,7 +140,7 @@ impl<R: std::io::Read> TranscriptRead for Reader<R> {
     ///     .transcripts()
     ///     .unwrap();
     ///
-    /// assert_eq!(transcripts.len(), 10);
+    /// assert_eq!(transcripts.len(), 27);
     /// ```
     fn transcripts(&mut self) -> Result<Transcripts, ReadWriteError> {
         let mut res = Transcripts::new();
@@ -152,9 +150,6 @@ impl<R: std::io::Read> TranscriptRead for Reader<R> {
                 Err(x) => return Err(ReadWriteError::from(x)),
             }
         }
-
-        debug!("Finished reading RefGene input");
-
         Ok(res)
     }
 }
