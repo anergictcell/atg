@@ -1,9 +1,9 @@
 # ATG
-_ATG_ is a library to handle and convert different data formats used in Genomics and Transcriptomics. The library provides convenient APIs to parse GTF and RefGene data and work with the resulting transcripts for all kind of downstream analyses. 
+_ATG_ is a library and standalone CLI tool to handle and convert different data formats used in Genomics and Transcriptomics. The library provides convenient APIs to parse GTF and RefGene data and work with the resulting transcripts for all kind of downstream analyses.
 
-The binary can be used to convert GTF into RefGene data and vice versa.
+The binary can be used to convert between GTF and RefGene data, generate bed files for transcripts or generate the nucleotide sequence as Fasta.
 
-The main purpose is actually just that - convert a GTF file into a RefGene file. Surprsingly, there are not many tools to do this properly. Even _atg_ does not handle all edge cases of GTF - but I tried to handle as much as possible. In addition, transcripts can also be written in bed format as well.
+The main purpose is actually just that - convert between GTF and RefGene file formats. Surprsingly, there are not many tools to do this properly. Even _atg_ does not handle all edge cases of GTF - but I tried to handle as many as possible. In addition, transcripts can also be written in bed format or as fasta.
 
 The project started only because I wanted to learn Rust. You will see that some sections have really bad code, others will have some better and more improved code. Overall, I'm still very new to Rust and I'm sure I fell for many traps and use lots of unidiomatic code. I'm happy for any feedback and improvement suggestions.
 
@@ -137,9 +137,14 @@ C9orf85 NM_001365057.2  chr9    74597574    74600974    +   3UTR    TGGAGTCTCC..
 ###### raw
 This is mainly useful for debugging, as it gives a quick glimpse into the Exons and CDS coordinates of the transcripts.
 
-Yes, that's it. Nothing more at the moment.
+###### bin
+Save Transcripts in _ATG_ binary format for faster re-reading.
 
-Ok, you can also change the verbosity, by adding `-v` (show info messages), `-vv` (debug), `-vvv` (trace)
+
+#### Tips
+Reading in GTF files is rather slow, due to the complexity of the format. If you need to repeatedly read in data from GTF, I recommend to generate a RefGene or binary file once and use this as input for subsequent steps.
+
+You can change the verbosity, by adding `-v` (show info messages), `-vv` (debug), `-vvv` (trace)
 
 On most Linux systems, you can use `--input /dev/stdin` and/or `--output /dev/stdout` to pipe into and out of atg.
 
@@ -149,9 +154,6 @@ Of course, all commands also have shorthand parameters:
 - `-i`, `--input`
 - `-o`, `--output`
 
-
-#### Tips
-Reading in GTF files is rather slow, due to the complexity of the format. If you need to repeatedly read in data from GTF, I recommend to generate a RefGene file once and use this as input for subsequent steps. (I'm also developing a binary format to improve performance even more.)
 
 ### ATG as library
 [The library API is mostly documented inline and available on docs.rs](https://docs.rs/atg)
@@ -185,7 +187,7 @@ match writer.write_transcripts(&transcripts) {
 - [x] Bed module to generate bed files with exons and introns
 - [ ] Compare transcripts from two different inputs
 - [x] Add fasta reading for nt and aa sequence outputs
-- [ ] Binary data format
+- [x] Binary data format
 
 ## Known issues
 ### GTF parsing
