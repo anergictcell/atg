@@ -50,3 +50,10 @@ test:
     echo -ne "Checking RefGene to GTF"
     diff <( cargo run -- -f refgene -i tests/data/example.refgene -t gtf -g ncbiRefSeq.2021-05-17 -o /dev/stdout 2> /dev/null | cut -f1-5,7-8 | sort ) <( cut -f1-5,7-8 tests/data/example.gtf)
     echo " \e[32m\e[1mOK\e[0m"
+
+
+benchmark name:
+    cargo build --release --target=aarch64-apple-darwin
+    cp target/aarch64-apple-darwin/release/atg target/atg-{{name}}-aarch64-apple-darwin
+    time target/atg-{{name}}-aarch64-apple-darwin -f gtf -i tests/data/hg19.ncbiRefSeq.gtf -o /dev/null -t none
+    flamegraph --root -- target/atg-{{name}}-aarch64-apple-darwin -f gtf -i tests/data/hg19.ncbiRefSeq.gtf -o /dev/null -t none
