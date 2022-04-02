@@ -192,7 +192,7 @@ match writer.write_transcripts(&transcripts) {
 - [ ] Remove function to sanitize chromosome name with `chr` prefix
 - [ ] Parallelize input parsing
 - [ ] Check if exons can be stored in smaller vec
-- [ ] Use std::mem::replace to move out of attributes, e.g. in TranscriptBuilder and remove Copy/Clone traits (https://stackoverflow.com/questions/31307680/how-to-move-one-field-out-of-a-struct-that-implements-drop-trait)
+- [ ] Use std::mem::replace to move out of attributes, e.g. in TranscriptBuilder and remove Copy/Clone traits <https://stackoverflow.com/questions/31307680/how-to-move-one-field-out-of-a-struct-that-implements-drop-trait>
 
 ## Known issues
 ### GTF parsing

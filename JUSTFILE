@@ -54,6 +54,7 @@ test:
 
 benchmark name:
     cargo build --release --target=aarch64-apple-darwin
+    rm target/atg-{{name}}-aarch64-apple-darwin
     cp target/aarch64-apple-darwin/release/atg target/atg-{{name}}-aarch64-apple-darwin
     time target/atg-{{name}}-aarch64-apple-darwin -f gtf -i tests/data/hg19.ncbiRefSeq.gtf -o /dev/null -t none
     flamegraph --root -- target/atg-{{name}}-aarch64-apple-darwin -f gtf -i tests/data/hg19.ncbiRefSeq.gtf -o /dev/null -t none
