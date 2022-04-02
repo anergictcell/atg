@@ -216,149 +216,24 @@ impl fmt::Display for GtfRecord {
 impl FromStr for GtfRecord {
     type Err = ParseGtfError;
 
-    /// The code inside here is super verbose, but the verbosity
-    /// brings huge performance gains
     fn from_str(s: &str) -> Result<Self, ParseGtfError> {
         let mut rb = GtfRecordBuilder::new();
-
-        // chrom is declared here to ensure the lifetime
-        // is long enough to build the GtfRecord
-        // TODO: Remove this after removal of `parse_chrom` function
-        let chrom: String;
-
         let mut last_idx = 0;
 
-        // chrom/seqname
-        match s.find('\t') {
-            Some(idx) => {
-                chrom = models::parse_chrom(&s[last_idx..idx]);
-                rb.chrom(&chrom);
-                last_idx = idx + 1;
-            }
-            None => {
-                return Err(ParseGtfError::new(format!(
-                    "too few columns in line: {}",
-                    s
-                )))
-            }
-        }
+        // Going through the GTF lines column by column
+        // manually, since this is faster than splitting
+        // the string into columns and iterating
+        last_idx = rb.chrom_from_str(s, last_idx)?;
+        last_idx = rb.source_from_str(s, last_idx)?;
+        last_idx = rb.feature_from_str(s, last_idx)?;
+        last_idx = rb.start_from_str(s, last_idx)?;
+        last_idx = rb.end_from_str(s, last_idx)?;
+        last_idx = rb.score_from_str(s, last_idx)?;
+        last_idx = rb.strand_from_str(s, last_idx)?;
+        last_idx = rb.frame_from_str(s, last_idx)?;
 
-        // source
-        match s[last_idx..].find('\t') {
-            Some(idx) => {
-                rb.source(&s[last_idx..idx + last_idx]);
-                last_idx = idx + last_idx + 1;
-            }
-            None => {
-                return Err(ParseGtfError::new(format!(
-                    "too few columns in line: {}",
-                    s
-                )))
-            }
-        }
-
-        // feature
-        match s[last_idx..].find('\t') {
-            Some(idx) => {
-                match GtfFeature::from_str(&s[last_idx..idx + last_idx]) {
-                    Ok(x) => {
-                        rb.feature(x);
-                    }
-                    Err(err) => return Err(ParseGtfError::new(err)),
-                }
-                last_idx = idx + last_idx + 1;
-            }
-            None => {
-                return Err(ParseGtfError::new(format!(
-                    "too few columns in line: {}",
-                    s
-                )))
-            }
-        }
-
-        // start
-        match s[last_idx..].find('\t') {
-            Some(idx) => {
-                match s[last_idx..idx + last_idx].parse::<u32>() {
-                    Ok(x) => rb.start(x),
-                    Err(err) => return Err(ParseGtfError::new(err)),
-                };
-                last_idx = idx + last_idx + 1;
-            }
-            None => {
-                return Err(ParseGtfError::new(format!(
-                    "too few columns in line: {}",
-                    s
-                )))
-            }
-        }
-
-        // end
-        match s[last_idx..].find('\t') {
-            Some(idx) => {
-                match s[last_idx..idx + last_idx].parse::<u32>() {
-                    Ok(x) => rb.end(x),
-                    Err(err) => return Err(ParseGtfError::new(err)),
-                };
-                last_idx = idx + last_idx + 1;
-            }
-            None => {
-                return Err(ParseGtfError::new(format!(
-                    "too few columns in line: {}",
-                    s
-                )))
-            }
-        }
-
-        // score
-        match s[last_idx..].find('\t') {
-            Some(idx) => {
-                rb.score_option(s[last_idx..idx + last_idx].parse::<f32>().ok());
-                last_idx = idx + last_idx + 1;
-            }
-            None => {
-                return Err(ParseGtfError::new(format!(
-                    "too few columns in line: {}",
-                    s
-                )))
-            }
-        }
-
-        // strand
-        match s[last_idx..].find('\t') {
-            Some(idx) => {
-                match Strand::from_str(&s[last_idx..idx + last_idx]) {
-                    Ok(x) => rb.strand(x),
-                    Err(err) => return Err(ParseGtfError::new(err)),
-                };
-                last_idx = idx + last_idx + 1;
-            }
-            None => {
-                return Err(ParseGtfError::new(format!(
-                    "too few columns in line: {}",
-                    s
-                )))
-            }
-        }
-
-        // frame
-        match s[last_idx..].find('\t') {
-            Some(idx) => {
-                match Frame::from_str(&s[last_idx..idx + last_idx]) {
-                    Ok(x) => rb.frame_offset(x),
-                    Err(err) => return Err(ParseGtfError::new(err)),
-                };
-                last_idx = idx + last_idx + 1;
-            }
-            None => {
-                return Err(ParseGtfError::new(format!(
-                    "too few columns in line: {}",
-                    s
-                )))
-            }
-        }
-
-        // attributes
+        // Attributes can be the last or second last column
+        // so we check for both cases here
         let (gene, transcript) = match s[last_idx..].find('\t') {
             Some(idx) => parse_attributes(&s[last_idx..idx + last_idx])?,
             None => parse_attributes(s[last_idx..].trim_end())?,
@@ -560,6 +435,140 @@ impl<'a> GtfRecordBuilder<'a> {
     pub fn transcript(&mut self, transcript: &'a str) -> &mut Self {
         self.transcript = Some(transcript);
         self
+    }
+
+    /// Uses the next tab-separated substring as chrom
+    /// and returns the start-index of the next substring
+    fn chrom_from_str(&mut self, s: &'a str, start_idx: usize) -> Result<usize, ParseGtfError> {
+        match s[start_idx..].find('\t') {
+            Some(idx) => {
+                let end_idx = idx + start_idx;
+                self.chrom(&s[start_idx..end_idx]);
+                Ok(end_idx + 1)
+            }
+            None => Err(ParseGtfError::new(format!(
+                "too few columns in line: {}",
+                s
+            ))),
+        }
+    }
+
+    /// Uses the next tab-separated substring as source
+    /// and returns the start-index of the next substring
+    fn source_from_str(&mut self, s: &'a str, start_idx: usize) -> Result<usize, ParseGtfError> {
+        match s[start_idx..].find('\t') {
+            Some(idx) => {
+                let end_idx = idx + start_idx;
+                self.source(&s[start_idx..end_idx]);
+                Ok(end_idx + 1)
+            }
+            None => Err(ParseGtfError::new(format!(
+                "too few columns in line: {}",
+                s
+            ))),
+        }
+    }
+
+    /// Uses the next tab-separated substring as feature
+    /// and returns the start-index of the next substring
+    fn feature_from_str(&mut self, s: &'a str, start_idx: usize) -> Result<usize, ParseGtfError> {
+        match s[start_idx..].find('\t') {
+            Some(idx) => {
+                let end_idx = idx + start_idx;
+                let feature = GtfFeature::from_str(&s[start_idx..end_idx])?;
+                self.feature(feature);
+                Ok(end_idx + 1)
+            }
+            None => Err(ParseGtfError::new(format!(
+                "too few columns in line: {}",
+                s
+            ))),
+        }
+    }
+
+    /// Uses the next tab-separated substring as start
+    /// and returns the start-index of the next substring
+    fn start_from_str(&mut self, s: &'a str, start_idx: usize) -> Result<usize, ParseGtfError> {
+        match s[start_idx..].find('\t') {
+            Some(idx) => {
+                let end_idx = idx + start_idx;
+                let start = s[start_idx..end_idx].parse::<u32>()?;
+                self.start(start);
+                Ok(end_idx + 1)
+            }
+            None => Err(ParseGtfError::new(format!(
+                "too few columns in line: {}",
+                s
+            ))),
+        }
+    }
+
+    /// Uses the next tab-separated substring as end
+    /// and returns the start-index of the next substring
+    fn end_from_str(&mut self, s: &'a str, start_idx: usize) -> Result<usize, ParseGtfError> {
+        match s[start_idx..].find('\t') {
+            Some(idx) => {
+                let end_idx = idx + start_idx;
+                let end = s[start_idx..end_idx].parse::<u32>()?;
+                self.end(end);
+                Ok(end_idx + 1)
+            }
+            None => Err(ParseGtfError::new(format!(
+                "too few columns in line: {}",
+                s
+            ))),
+        }
+    }
+
+    /// Uses the next tab-separated substring as score
+    /// and returns the start-index of the next substring
+    fn score_from_str(&mut self, s: &'a str, start_idx: usize) -> Result<usize, ParseGtfError> {
+        match s[start_idx..].find('\t') {
+            Some(idx) => {
+                let end_idx = idx + start_idx;
+                let score = s[start_idx..end_idx].parse::<f32>().ok();
+                self.score_option(score);
+                Ok(end_idx + 1)
+            }
+            None => Err(ParseGtfError::new(format!(
+                "too few columns in line: {}",
+                s
+            ))),
+        }
+    }
+
+    /// Uses the next tab-separated substring as strand
+    /// and returns the start-index of the next substring
+    fn strand_from_str(&mut self, s: &'a str, start_idx: usize) -> Result<usize, ParseGtfError> {
+        match s[start_idx..].find('\t') {
+            Some(idx) => {
+                let end_idx = idx + start_idx;
+                let strand = Strand::from_str(&s[start_idx..end_idx])?;
+                self.strand(strand);
+                Ok(end_idx + 1)
+            }
+            None => Err(ParseGtfError::new(format!(
+                "too few columns in line: {}",
+                s
+            ))),
+        }
+    }
+
+    /// Uses the next tab-separated substring as frame
+    /// and returns the start-index of the next substring
+    fn frame_from_str(&mut self, s: &'a str, start_idx: usize) -> Result<usize, ParseGtfError> {
+        match s[start_idx..].find('\t') {
+            Some(idx) => {
+                let end_idx = idx + start_idx;
+                let frame = Frame::from_str(&s[start_idx..end_idx])?;
+                self.frame_offset(frame);
+                Ok(end_idx + 1)
+            }
+            None => Err(ParseGtfError::new(format!(
+                "too few columns in line: {}",
+                s
+            ))),
+        }
     }
 
     /// Builds and returns a [`Transcript`](crate::models::Transcript)
