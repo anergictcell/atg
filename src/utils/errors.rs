@@ -113,6 +113,12 @@ impl From<BuildTranscriptError> for ParseGtfError {
     }
 }
 
+impl From<String> for ParseGtfError {
+    fn from(e: String) -> ParseGtfError {
+        ParseGtfError { message: e }
+    }
+}
+
 pub struct ParseRefGeneError {
     pub message: String,
 }

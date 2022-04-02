@@ -216,83 +216,170 @@ impl fmt::Display for GtfRecord {
 impl FromStr for GtfRecord {
     type Err = ParseGtfError;
 
+    /// The code inside here is super verbose, but the verbosity
+    /// brings huge performance gains
     fn from_str(s: &str) -> Result<Self, ParseGtfError> {
-        let cols: Vec<&str> = s.split('\t').collect();
-        if cols.len() < MIN_GTF_COLUMNS || cols.len() > MAX_GTF_COLUMNS {
-            return Err(ParseGtfError {
-                message: format!(
-                    "Wrong number of columns in GTF line. Expected {}-{}, received {}: {}",
-                    MIN_GTF_COLUMNS,
-                    MAX_GTF_COLUMNS,
-                    cols.len(),
-                    s
-                ),
-            });
-        };
+        let mut rb = GtfRecordBuilder::new();
 
-        let (gene, transcript) = parse_attributes(cols[ATTRIBUTES_COL])?;
-        let res = GtfRecord {
-            gene,
-            transcript,
-            chrom: models::parse_chrom(cols[CHROMOSOME_COL]),
-            source: cols[SOURCE_COL].to_string(),
-            feature: match GtfFeature::from_str(cols[FEATURE_COL]) {
-                Ok(x) => x,
-                Err(x) => {
-                    return Err(ParseGtfError {
-                        message: x.to_string(),
-                    })
+        // chrom is declared here to ensure the lifetime
+        // is long enough to build the GtfRecord
+        // TODO: Remove this after removal of `parse_chrom` function
+        let chrom: String;
+
+        let mut last_idx = 0;
+
+        // chrom/seqname
+        match s.find('\t') {
+            Some(idx) => {
+                chrom = models::parse_chrom(&s[last_idx..idx]);
+                rb.chrom(&chrom);
+                last_idx = idx + 1;
+            }
+            None => {
+                return Err(ParseGtfError::new(format!(
+                    "too few columns in line: {}",
+                    s
+                )))
+            }
+        }
+
+        // source
+        match s[last_idx..].find('\t') {
+            Some(idx) => {
+                rb.source(&s[last_idx..idx + last_idx]);
+                last_idx = idx + last_idx + 1;
+            }
+            None => {
+                return Err(ParseGtfError::new(format!(
+                    "too few columns in line: {}",
+                    s
+                )))
+            }
+        }
+
+        // feature
+        match s[last_idx..].find('\t') {
+            Some(idx) => {
+                match GtfFeature::from_str(&s[last_idx..idx + last_idx]) {
+                    Ok(x) => {
+                        rb.feature(x);
+                    }
+                    Err(err) => return Err(ParseGtfError::new(err)),
                 }
-            },
-            start: match cols[START_COL].parse::<u32>() {
-                Ok(x) => x,
-                Err(x) => {
-                    return Err(ParseGtfError {
-                        message: x.to_string(),
-                    })
-                }
-            },
-            end: match cols[END_COL].parse::<u32>() {
-                Ok(x) => x,
-                Err(x) => {
-                    return Err(ParseGtfError {
-                        message: x.to_string(),
-                    })
-                }
-            },
-            score: match cols[SCORE_COL].parse::<f32>() {
-                Ok(x) => Some(x),
-                _ => None,
-            },
-            strand: match Strand::from_str(cols[STRAND_COL]) {
-                Ok(x) => x,
-                Err(x) => return Err(ParseGtfError { message: x }),
-            },
-            frame_offset: match Frame::from_str(cols[FRAME_COL]) {
-                Ok(x) => x,
-                Err(x) => return Err(ParseGtfError { message: x }),
-            },
+                last_idx = idx + last_idx + 1;
+            }
+            None => {
+                return Err(ParseGtfError::new(format!(
+                    "too few columns in line: {}",
+                    s
+                )))
+            }
+        }
+
+        // start
+        match s[last_idx..].find('\t') {
+            Some(idx) => {
+                match s[last_idx..idx + last_idx].parse::<u32>() {
+                    Ok(x) => rb.start(x),
+                    Err(err) => return Err(ParseGtfError::new(err)),
+                };
+                last_idx = idx + last_idx + 1;
+            }
+            None => {
+                return Err(ParseGtfError::new(format!(
+                    "too few columns in line: {}",
+                    s
+                )))
+            }
+        }
+
+        // end
+        match s[last_idx..].find('\t') {
+            Some(idx) => {
+                match s[last_idx..idx + last_idx].parse::<u32>() {
+                    Ok(x) => rb.end(x),
+                    Err(err) => return Err(ParseGtfError::new(err)),
+                };
+                last_idx = idx + last_idx + 1;
+            }
+            None => {
+                return Err(ParseGtfError::new(format!(
+                    "too few columns in line: {}",
+                    s
+                )))
+            }
+        }
+
+        // score
+        match s[last_idx..].find('\t') {
+            Some(idx) => {
+                rb.score_option(s[last_idx..idx + last_idx].parse::<f32>().ok());
+                last_idx = idx + last_idx + 1;
+            }
+            None => {
+                return Err(ParseGtfError::new(format!(
+                    "too few columns in line: {}",
+                    s
+                )))
+            }
+        }
+
+        // strand
+        match s[last_idx..].find('\t') {
+            Some(idx) => {
+                match Strand::from_str(&s[last_idx..idx + last_idx]) {
+                    Ok(x) => rb.strand(x),
+                    Err(err) => return Err(ParseGtfError::new(err)),
+                };
+                last_idx = idx + last_idx + 1;
+            }
+            None => {
+                return Err(ParseGtfError::new(format!(
+                    "too few columns in line: {}",
+                    s
+                )))
+            }
+        }
+
+        // frame
+        match s[last_idx..].find('\t') {
+            Some(idx) => {
+                match Frame::from_str(&s[last_idx..idx + last_idx]) {
+                    Ok(x) => rb.frame_offset(x),
+                    Err(err) => return Err(ParseGtfError::new(err)),
+                };
+                last_idx = idx + last_idx + 1;
+            }
+            None => {
+                return Err(ParseGtfError::new(format!(
+                    "too few columns in line: {}",
+                    s
+                )))
+            }
+        }
+
+        // attributes
+        let (gene, transcript) = match s[last_idx..].find('\t') {
+            Some(idx) => parse_attributes(&s[last_idx..idx + last_idx])?,
+            None => parse_attributes(s[last_idx..].trim_end())?,
         };
-        Ok(res)
+        rb.gene(gene).transcript(transcript);
+
+        match rb.build() {
+            Ok(x) => Ok(x),
+            Err(err) => Err(ParseGtfError::new(err)),
+        }
     }
 }
 
-fn parse_attributes(mut attrs: &str) -> Result<(String, String), ParseGtfError> {
-    let mut gene = String::with_capacity(10);
-    let mut transcript = String::with_capacity(20);
+fn parse_attributes(mut attrs: &str) -> Result<(&str, &str), ParseGtfError> {
+    let mut gene: &str = "";
+    let mut transcript: &str = "";
 
     while let Some(idx) = attrs.find(';') {
         match parse_attribute(attrs[..idx].trim()) {
-            Ok(("gene_id", value)) => {
-                gene.clear();
-                gene.push_str(value);
-                gene.shrink_to_fit();
-            }
-            Ok(("transcript_id", value)) => {
-                transcript.clear();
-                transcript.push_str(value);
-                transcript.shrink_to_fit();
-            }
+            Ok(("gene_id", value)) => gene = value,
+            Ok(("transcript_id", value)) => transcript = value,
             Ok((_, _)) => {} // ignore all other attributes
             Err(err) => {
                 return Err(ParseGtfError::from_chain(
