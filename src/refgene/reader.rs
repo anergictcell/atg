@@ -8,7 +8,6 @@ use crate::models::Transcripts;
 use crate::refgene::constants::*;
 use crate::utils::errors::ParseRefGeneError;
 
-use crate::models;
 use crate::models::{CdsStat, Exon, Frame, Strand, TranscriptBuilder};
 use crate::models::{Transcript, TranscriptRead};
 use crate::utils::errors::ReadWriteError;
@@ -222,7 +221,7 @@ impl TryFrom<Vec<&str>> for Transcript {
         let mut transcript = TranscriptBuilder::new()
             .bin(bin)
             .name(cols[TRANSCRIPT_COL])
-            .chrom(&models::parse_chrom(cols[CHROMOSOME_COL]))
+            .chrom(cols[CHROMOSOME_COL])
             .strand(strand)
             .gene(cols[GENE_SYMBOL_COL])
             .cds_start_stat(cds_start_stat)

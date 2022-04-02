@@ -15,7 +15,6 @@ pub use crate::models::frame::Frame;
 pub use crate::models::sequence::{Nucleotide, Sequence};
 pub use crate::models::transcript::{Coordinate, CoordinateVector, Transcript, TranscriptBuilder};
 pub use crate::models::transcripts::Transcripts;
-pub use crate::models::utils::parse_chrom;
 pub use crate::models::utils::{CdsStat, Strand, TranscriptRead, TranscriptWrite};
 
 #[cfg(test)]

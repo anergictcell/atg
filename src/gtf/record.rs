@@ -217,82 +217,44 @@ impl FromStr for GtfRecord {
     type Err = ParseGtfError;
 
     fn from_str(s: &str) -> Result<Self, ParseGtfError> {
-        let cols: Vec<&str> = s.split('\t').collect();
-        if cols.len() < MIN_GTF_COLUMNS || cols.len() > MAX_GTF_COLUMNS {
-            return Err(ParseGtfError {
-                message: format!(
-                    "Wrong number of columns in GTF line. Expected {}-{}, received {}: {}",
-                    MIN_GTF_COLUMNS,
-                    MAX_GTF_COLUMNS,
-                    cols.len(),
-                    s
-                ),
-            });
-        };
+        let mut rb = GtfRecordBuilder::new();
+        let mut last_idx = 0;
 
-        let (gene, transcript) = parse_attributes(cols[ATTRIBUTES_COL])?;
-        let res = GtfRecord {
-            gene,
-            transcript,
-            chrom: models::parse_chrom(cols[CHROMOSOME_COL]),
-            source: cols[SOURCE_COL].to_string(),
-            feature: match GtfFeature::from_str(cols[FEATURE_COL]) {
-                Ok(x) => x,
-                Err(x) => {
-                    return Err(ParseGtfError {
-                        message: x.to_string(),
-                    })
-                }
-            },
-            start: match cols[START_COL].parse::<u32>() {
-                Ok(x) => x,
-                Err(x) => {
-                    return Err(ParseGtfError {
-                        message: x.to_string(),
-                    })
-                }
-            },
-            end: match cols[END_COL].parse::<u32>() {
-                Ok(x) => x,
-                Err(x) => {
-                    return Err(ParseGtfError {
-                        message: x.to_string(),
-                    })
-                }
-            },
-            score: match cols[SCORE_COL].parse::<f32>() {
-                Ok(x) => Some(x),
-                _ => None,
-            },
-            strand: match Strand::from_str(cols[STRAND_COL]) {
-                Ok(x) => x,
-                Err(x) => return Err(ParseGtfError { message: x }),
-            },
-            frame_offset: match Frame::from_str(cols[FRAME_COL]) {
-                Ok(x) => x,
-                Err(x) => return Err(ParseGtfError { message: x }),
-            },
+        // Going through the GTF lines column by column
+        // manually, since this is faster than splitting
+        // the string into columns and iterating
+        last_idx = rb.chrom_from_str(s, last_idx)?;
+        last_idx = rb.source_from_str(s, last_idx)?;
+        last_idx = rb.feature_from_str(s, last_idx)?;
+        last_idx = rb.start_from_str(s, last_idx)?;
+        last_idx = rb.end_from_str(s, last_idx)?;
+        last_idx = rb.score_from_str(s, last_idx)?;
+        last_idx = rb.strand_from_str(s, last_idx)?;
+        last_idx = rb.frame_from_str(s, last_idx)?;
+
+        // Attributes can be the last or second last column
+        // so we check for both cases here
+        let (gene, transcript) = match s[last_idx..].find('\t') {
+            Some(idx) => parse_attributes(&s[last_idx..idx + last_idx])?,
+            None => parse_attributes(s[last_idx..].trim_end())?,
         };
-        Ok(res)
+        rb.gene(gene).transcript(transcript);
+
+        match rb.build() {
+            Ok(x) => Ok(x),
+            Err(err) => Err(ParseGtfError::new(err)),
+        }
     }
 }
 
-fn parse_attributes(mut attrs: &str) -> Result<(String, String), ParseGtfError> {
-    let mut gene = String::with_capacity(10);
-    let mut transcript = String::with_capacity(20);
+fn parse_attributes(mut attrs: &str) -> Result<(&str, &str), ParseGtfError> {
+    let mut gene: &str = "";
+    let mut transcript: &str = "";
 
     while let Some(idx) = attrs.find(';') {
         match parse_attribute(attrs[..idx].trim()) {
-            Ok(("gene_id", value)) => {
-                gene.clear();
-                gene.push_str(value);
-                gene.shrink_to_fit();
-            }
-            Ok(("transcript_id", value)) => {
-                transcript.clear();
-                transcript.push_str(value);
-                transcript.shrink_to_fit();
-            }
+            Ok(("gene_id", value)) => gene = value,
+            Ok(("transcript_id", value)) => transcript = value,
             Ok((_, _)) => {} // ignore all other attributes
             Err(err) => {
                 return Err(ParseGtfError::from_chain(
@@ -473,6 +435,140 @@ impl<'a> GtfRecordBuilder<'a> {
     pub fn transcript(&mut self, transcript: &'a str) -> &mut Self {
         self.transcript = Some(transcript);
         self
+    }
+
+    /// Uses the next tab-separated substring as chrom
+    /// and returns the start-index of the next substring
+    fn chrom_from_str(&mut self, s: &'a str, start_idx: usize) -> Result<usize, ParseGtfError> {
+        match s[start_idx..].find('\t') {
+            Some(idx) => {
+                let end_idx = idx + start_idx;
+                self.chrom(&s[start_idx..end_idx]);
+                Ok(end_idx + 1)
+            }
+            None => Err(ParseGtfError::new(format!(
+                "too few columns in line: {}",
+                s
+            ))),
+        }
+    }
+
+    /// Uses the next tab-separated substring as source
+    /// and returns the start-index of the next substring
+    fn source_from_str(&mut self, s: &'a str, start_idx: usize) -> Result<usize, ParseGtfError> {
+        match s[start_idx..].find('\t') {
+            Some(idx) => {
+                let end_idx = idx + start_idx;
+                self.source(&s[start_idx..end_idx]);
+                Ok(end_idx + 1)
+            }
+            None => Err(ParseGtfError::new(format!(
+                "too few columns in line: {}",
+                s
+            ))),
+        }
+    }
+
+    /// Uses the next tab-separated substring as feature
+    /// and returns the start-index of the next substring
+    fn feature_from_str(&mut self, s: &'a str, start_idx: usize) -> Result<usize, ParseGtfError> {
+        match s[start_idx..].find('\t') {
+            Some(idx) => {
+                let end_idx = idx + start_idx;
+                let feature = GtfFeature::from_str(&s[start_idx..end_idx])?;
+                self.feature(feature);
+                Ok(end_idx + 1)
+            }
+            None => Err(ParseGtfError::new(format!(
+                "too few columns in line: {}",
+                s
+            ))),
+        }
+    }
+
+    /// Uses the next tab-separated substring as start
+    /// and returns the start-index of the next substring
+    fn start_from_str(&mut self, s: &'a str, start_idx: usize) -> Result<usize, ParseGtfError> {
+        match s[start_idx..].find('\t') {
+            Some(idx) => {
+                let end_idx = idx + start_idx;
+                let start = s[start_idx..end_idx].parse::<u32>()?;
+                self.start(start);
+                Ok(end_idx + 1)
+            }
+            None => Err(ParseGtfError::new(format!(
+                "too few columns in line: {}",
+                s
+            ))),
+        }
+    }
+
+    /// Uses the next tab-separated substring as end
+    /// and returns the start-index of the next substring
+    fn end_from_str(&mut self, s: &'a str, start_idx: usize) -> Result<usize, ParseGtfError> {
+        match s[start_idx..].find('\t') {
+            Some(idx) => {
+                let end_idx = idx + start_idx;
+                let end = s[start_idx..end_idx].parse::<u32>()?;
+                self.end(end);
+                Ok(end_idx + 1)
+            }
+            None => Err(ParseGtfError::new(format!(
+                "too few columns in line: {}",
+                s
+            ))),
+        }
+    }
+
+    /// Uses the next tab-separated substring as score
+    /// and returns the start-index of the next substring
+    fn score_from_str(&mut self, s: &'a str, start_idx: usize) -> Result<usize, ParseGtfError> {
+        match s[start_idx..].find('\t') {
+            Some(idx) => {
+                let end_idx = idx + start_idx;
+                let score = s[start_idx..end_idx].parse::<f32>().ok();
+                self.score_option(score);
+                Ok(end_idx + 1)
+            }
+            None => Err(ParseGtfError::new(format!(
+                "too few columns in line: {}",
+                s
+            ))),
+        }
+    }
+
+    /// Uses the next tab-separated substring as strand
+    /// and returns the start-index of the next substring
+    fn strand_from_str(&mut self, s: &'a str, start_idx: usize) -> Result<usize, ParseGtfError> {
+        match s[start_idx..].find('\t') {
+            Some(idx) => {
+                let end_idx = idx + start_idx;
+                let strand = Strand::from_str(&s[start_idx..end_idx])?;
+                self.strand(strand);
+                Ok(end_idx + 1)
+            }
+            None => Err(ParseGtfError::new(format!(
+                "too few columns in line: {}",
+                s
+            ))),
+        }
+    }
+
+    /// Uses the next tab-separated substring as frame
+    /// and returns the start-index of the next substring
+    fn frame_from_str(&mut self, s: &'a str, start_idx: usize) -> Result<usize, ParseGtfError> {
+        match s[start_idx..].find('\t') {
+            Some(idx) => {
+                let end_idx = idx + start_idx;
+                let frame = Frame::from_str(&s[start_idx..end_idx])?;
+                self.frame_offset(frame);
+                Ok(end_idx + 1)
+            }
+            None => Err(ParseGtfError::new(format!(
+                "too few columns in line: {}",
+                s
+            ))),
+        }
     }
 
     /// Builds and returns a [`Transcript`](crate::models::Transcript)
