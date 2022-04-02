@@ -129,28 +129,3 @@ pub trait TranscriptRead {
     /// Consumes the `Reader` and returns `Transcripts`
     fn transcripts(&mut self) -> Result<Transcripts, ReadWriteError>;
 }
-
-/// Ensures that the chrom values internally will always contain a "chr" prefix
-///
-/// # Examples
-///
-/// ```rust
-/// use atg::models::parse_chrom;
-///
-/// assert_eq!(parse_chrom("1"), "chr1");
-/// assert_eq!(parse_chrom("chr1"), "chr1");
-/// assert_eq!(parse_chrom("CHR1"), "chr1");
-/// assert_eq!(parse_chrom("CHr1"), "chr1");
-/// assert_eq!(parse_chrom("chrM"), "chrM");
-/// assert_eq!(parse_chrom("M"), "chrM");
-/// assert_eq!(parse_chrom("chrMT"), "chrMT");
-/// assert_eq!(parse_chrom("MT"), "chrMT");
-/// ```
-pub fn parse_chrom(s: &str) -> String {
-    let res = String::from("chr");
-    if s.to_ascii_lowercase().starts_with("chr") {
-        res + &s[3..]
-    } else {
-        res + s
-    }
-}
