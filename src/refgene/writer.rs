@@ -86,6 +86,13 @@ impl<W: std::io::Write> TranscriptWrite for Writer<W> {
     /// Consider [`writeln_single_transcript`](Writer::writeln_single_transcript)
     /// to ensure that an extra newline is added to the output
     fn write_single_transcript(&mut self, transcript: &Transcript) -> Result<(), std::io::Error> {
+        let columns: Vec<String> = Vec::from(transcript);
+        self.inner.write_all((columns.join("\t")).as_bytes())
+    }
+}
+
+impl From<&Transcript> for Vec<String> {
+    fn from(transcript: &Transcript) -> Self {
         // RefGene is a tab-delimited format, each line has 16 columns
         // Defines a Vector that contains the strings for each column
         let mut columns: Vec<String> = vec!["".to_string(); N_REFGENE_COLUMNS];
@@ -148,7 +155,7 @@ impl<W: std::io::Write> TranscriptWrite for Writer<W> {
             .map(|exon| format!("{},", exon.frame_offset().to_refgene()))
             .collect();
 
-        self.inner.write_all((columns.join("\t")).as_bytes())
+        columns
     }
 }
 
