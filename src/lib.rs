@@ -3,6 +3,7 @@
 pub mod bed;
 pub mod fasta;
 pub mod genepredext;
+pub mod genepred;
 pub mod gtf;
 pub mod models;
 pub mod refgene;

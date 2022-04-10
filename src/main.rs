@@ -12,6 +12,7 @@ use atg::utils::errors::AtgError;
 
 use atg::bed;
 use atg::fasta;
+use atg::genepred;
 use atg::genepredext;
 use atg::gtf;
 use atg::models::TranscriptWrite;
@@ -25,6 +26,7 @@ fn parse_cli_args() -> ArgMatches<'static> {
         .about(
             "Convert transcript data from and to different file formats\n\n\
             ATG supports the following formats:\n\
+              * genepred         - GenePred format (one transcript per line\n\
               * genepredext      - GenePredExt format (one transcript per line\n\
               * refgene          - RefGene format (one transcript per line)\n\
               * gtf              - GTF2.2 format\n\
@@ -52,7 +54,7 @@ fn parse_cli_args() -> ArgMatches<'static> {
             Arg::with_name("to")
                 .short("t")
                 .long("to")
-                .possible_values(&["genepredext", "refgene", "gtf", "bed", "fasta", "fasta-split", "feature-sequence", "raw", "bin", "none"])
+                .possible_values(&["genepred", "genepredext", "refgene", "gtf", "bed", "fasta", "fasta-split", "feature-sequence", "raw", "bin", "none"])
                 .case_insensitive(true)
                 .value_name("file-format")
                 .help("data format of the output")
@@ -168,6 +170,10 @@ fn write_output(
     let _ = match output_format {
         "refgene" => {
             let mut writer = refgene::Writer::from_file(output_fd)?;
+            writer.write_transcripts(&transcripts)?
+        }
+        "genepred" => {
+            let mut writer = genepred::Writer::from_file(output_fd)?;
             writer.write_transcripts(&transcripts)?
         }
         "genepredext" => {

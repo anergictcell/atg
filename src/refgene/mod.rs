@@ -7,6 +7,7 @@
 //! I mainly relied on this
 //! [BioStars](https://www.biostars.org/p/18480/)
 //! tip to "Describe table schema" on [UCSC Genome](http://genome.ucsc.edu/cgi-bin/hgTables)
+//! and the [UCSC table schema](http://rohsdb.cmb.usc.edu/GBshape/cgi-bin/hgTables?hgsid=583_AkEae6dMkhjf5kd9BxNksFo9ySiK&hgta_doSchemaDb=mm10&hgta_doSchemaTable=refGene)
 //!
 //!  # Schema for NCBI RefSeq - RefSeq genes from NCBI
 //! | Column | Type | Example | Description |
