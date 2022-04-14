@@ -3,8 +3,6 @@ use std::io::{BufWriter, Write};
 use std::path::Path;
 
 use crate::models::{Transcript, TranscriptWrite};
-use crate::refgene::constants::*;
-use crate::utils::errors::ParseRefGeneError;
 use crate::utils::errors::ReadWriteError;
 
 /// Writes [`Transcript`]s into a `BufWriter`
@@ -14,7 +12,7 @@ use crate::utils::errors::ReadWriteError;
 /// ```rust
 /// use std::io;
 /// use atg::tests;;
-/// use atg::refgene::Writer;
+/// use atg::genepredext::Writer;
 /// use atg::models::TranscriptWrite;
 ///
 /// let transcripts = vec![tests::transcripts::standard_transcript()];
@@ -24,7 +22,7 @@ use crate::utils::errors::ReadWriteError;
 /// writer.write_transcript_vec(&transcripts);
 ///
 /// let written_output = String::from_utf8(writer.into_inner().unwrap()).unwrap();
-/// assert_eq!(written_output.starts_with("0\tTest-Transcript\tchr1\t"), true);
+/// assert_eq!(written_output.starts_with("Test-Transcript\tchr1\t"), true);
 /// ```
 pub struct Writer<W: std::io::Write> {
     inner: BufWriter<W>,
@@ -56,23 +54,17 @@ impl<W: std::io::Write> Writer<W> {
         }
     }
 
-    pub fn flush(&mut self) -> Result<(), ParseRefGeneError> {
-        match self.inner.flush() {
-            Ok(res) => Ok(res),
-            Err(err) => Err(ParseRefGeneError::from(err.to_string())),
-        }
+    pub fn flush(&mut self) -> Result<(), std::io::Error> {
+        self.inner.flush()
     }
 
-    pub fn into_inner(self) -> Result<W, ParseRefGeneError> {
-        match self.inner.into_inner() {
-            Ok(res) => Ok(res),
-            Err(err) => Err(ParseRefGeneError::from(err.to_string())),
-        }
+    pub fn into_inner(self) -> Result<W, std::io::IntoInnerError<BufWriter<W>>> {
+        self.inner.into_inner()
     }
 }
 
 impl<W: std::io::Write> TranscriptWrite for Writer<W> {
-    /// Writes a single transcript formatted as RefGene with an extra newline
+    /// Writes a single transcript formatted as GenePred with an extra newline
     ///
     /// This method adds an extra newline at the end of the row
     /// to allow writing multiple transcripts continuosly
@@ -81,89 +73,22 @@ impl<W: std::io::Write> TranscriptWrite for Writer<W> {
         self.inner.write_all("\n".as_bytes())
     }
 
-    /// Writes a single transcript formatted as RefGene
+    /// Writes a single transcript formatted as GenePred
     ///
     /// Consider [`writeln_single_transcript`](Writer::writeln_single_transcript)
     /// to ensure that an extra newline is added to the output
     fn write_single_transcript(&mut self, transcript: &Transcript) -> Result<(), std::io::Error> {
         let columns: Vec<String> = Vec::from(transcript);
-        self.inner.write_all((columns.join("\t")).as_bytes())
-    }
-}
-
-impl From<&Transcript> for Vec<String> {
-    fn from(transcript: &Transcript) -> Self {
-        // RefGene is a tab-delimited format, each line has 16 columns
-        // Defines a Vector that contains the strings for each column
-        let mut columns: Vec<String> = vec!["".to_string(); N_REFGENE_COLUMNS];
-
-        columns[TRANSCRIPT_COL] = transcript.name().to_string();
-        columns[CHROMOSOME_COL] = transcript.chrom().to_string();
-        columns[STRAND_COL] = transcript.strand().to_string();
-        // RefGene handled start coordinates differently, so we substract 1.
-        // See the comments in `instantiate_exons`.
-        columns[TX_START_COL] = (transcript.tx_start() - 1).to_string();
-        columns[TX_END_COL] = transcript.tx_end().to_string();
-        columns[GENE_SYMBOL_COL] = transcript.gene().to_string();
-        columns[CDS_START_STAT_COL] = transcript.cds_start_stat().to_string();
-        columns[CDS_END_STAT_COL] = transcript.cds_end_stat().to_string();
-        columns[EXON_COUNT_COL] = transcript.exon_count().to_string();
-
-        // The bin value is not always present, defaulting to 0
-        columns[BIN_COL] = match transcript.bin() {
-            Some(x) => x.to_string(),
-            _ => "0".to_string(),
-        };
-
-        // The score value is not always present, default to 0
-        columns[SCORE_COL] = match transcript.score() {
-            Some(x) => x.to_string(),
-            _ => "0".to_string(),
-        };
-
-        // If the transcript does not have a CDS
-        // the CDS-start and CDS-end values are set to txEnd
-        columns[CDS_START_COL] = match transcript.cds_start() {
-            // RefGene handled start coordinates differently, so we substract 1.
-            // See the comments in `instantiate_exons`.
-            Some(x) => (x - 1).to_string(),
-            _ => transcript.tx_end().to_string(),
-        };
-        columns[CDS_END_COL] = match transcript.cds_end() {
-            Some(x) => x.to_string(),
-            _ => transcript.tx_end().to_string(),
-        };
-
-        // Don't ask, but some reason the refGene specs indicate that
-        // there is also a trailing comma after the list of exons
-        // e.g.: `12227,12721,14409,`
-        columns[EXON_STARTS_COL] = transcript
-            .exons()
-            .iter()
-            // RefGene handled start coordinates differently, so we substract 1.
-            // See the comments in `instantiate_exons`.
-            .map(|exon| format!("{},", (exon.start() - 1)))
-            .collect();
-        columns[EXON_ENDS_COL] = transcript
-            .exons()
-            .iter()
-            .map(|exon| format!("{},", exon.end()))
-            .collect();
-        columns[EXON_FRAMES_COL] = transcript
-            .exons()
-            .iter()
-            .map(|exon| format!("{},", exon.frame_offset().to_refgene()))
-            .collect();
-
-        columns
+        // GenePredExt is similar to RefGene, just missing the first column `bin`.
+        self.inner.write_all((columns[1..].join("\t")).as_bytes())
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::Writer;
+    use crate::genepredext::Reader;
     use crate::models::{TranscriptRead, TranscriptWrite};
-    use crate::refgene::Reader;
     use crate::tests::transcripts;
 
     #[test]
@@ -176,8 +101,8 @@ mod tests {
 
         assert!(output.len() > 10);
 
-        // Since it's a bit too complicated to compare GTF file directly
-        // this tests re-parses the GTF data back into a Transcript
+        // Since it's a bit too complicated to compare GenePred file directly
+        // this tests re-parses the GenePred data back into a Transcript
         // and compares this
         let mut reader = Reader::new(&*output);
         let read_transcripts = reader.transcripts().unwrap();
@@ -198,8 +123,8 @@ mod tests {
 
         assert!(output.len() > 10);
 
-        // Since it's a bit too complicated to compare GTF file directly
-        // this tests re-parses the GTF data back into a Transcript
+        // Since it's a bit too complicated to compare GenePred file directly
+        // this tests re-parses the GenePred data back into a Transcript
         // and compares this
         let mut reader = Reader::new(&*output);
         let read_transcripts = reader.transcripts().unwrap();
@@ -220,8 +145,8 @@ mod tests {
 
         assert!(output.len() > 10);
 
-        // Since it's a bit too complicated to compare GTF file directly
-        // this tests re-parses the GTF data back into a Transcript
+        // Since it's a bit too complicated to compare GenePred file directly
+        // this tests re-parses the GenePred data back into a Transcript
         // and compares this
         let mut reader = Reader::new(&*output);
         let read_transcripts = reader.transcripts().unwrap();
@@ -242,8 +167,8 @@ mod tests {
 
         assert!(output.len() > 10);
 
-        // Since it's a bit too complicated to compare GTF file directly
-        // this tests re-parses the GTF data back into a Transcript
+        // Since it's a bit too complicated to compare GenePred file directly
+        // this tests re-parses the GenePred data back into a Transcript
         // and compares this
         let mut reader = Reader::new(&*output);
         let read_transcripts = reader.transcripts().unwrap();

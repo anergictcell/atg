@@ -12,6 +12,8 @@ use atg::utils::errors::AtgError;
 
 use atg::bed;
 use atg::fasta;
+use atg::genepred;
+use atg::genepredext;
 use atg::gtf;
 use atg::models::TranscriptWrite;
 use atg::read_transcripts;
@@ -24,6 +26,8 @@ fn parse_cli_args() -> ArgMatches<'static> {
         .about(
             "Convert transcript data from and to different file formats\n\n\
             ATG supports the following formats:\n\
+              * genepred         - GenePred format (one transcript per line\n\
+              * genepredext      - GenePredExt format (one transcript per line\n\
               * refgene          - RefGene format (one transcript per line)\n\
               * gtf              - GTF2.2 format\n\
               * bed              - Bedfile (one transcript per line)\n\
@@ -39,7 +43,7 @@ fn parse_cli_args() -> ArgMatches<'static> {
             Arg::with_name("from")
                 .short("f")
                 .long("from")
-                .possible_values(&["refgene", "gtf", "bin"])
+                .possible_values(&["genepredext", "refgene", "gtf", "bin"])
                 .case_insensitive(true)
                 .value_name("file-format")
                 .help("Data format of input file")
@@ -50,7 +54,7 @@ fn parse_cli_args() -> ArgMatches<'static> {
             Arg::with_name("to")
                 .short("t")
                 .long("to")
-                .possible_values(&["refgene", "gtf", "bed", "fasta", "fasta-split", "feature-sequence", "raw", "bin", "none"])
+                .possible_values(&["genepred", "genepredext", "refgene", "gtf", "bed", "fasta", "fasta-split", "feature-sequence", "raw", "bin", "none"])
                 .case_insensitive(true)
                 .value_name("file-format")
                 .help("data format of the output")
@@ -132,6 +136,7 @@ fn read_input_file(input_format: &str, input_fd: &str) -> Result<Transcripts, At
 
     let transcripts = match input_format {
         "refgene" => read_transcripts(refgene::Reader::from_file(input_fd))?,
+        "genepredext" => read_transcripts(genepredext::Reader::from_file(input_fd))?,
         "gtf" => read_transcripts(gtf::Reader::from_file(input_fd))?,
         "bin" => {
             let reader = File::open(input_fd)?;
@@ -165,6 +170,14 @@ fn write_output(
     let _ = match output_format {
         "refgene" => {
             let mut writer = refgene::Writer::from_file(output_fd)?;
+            writer.write_transcripts(&transcripts)?
+        }
+        "genepred" => {
+            let mut writer = genepred::Writer::from_file(output_fd)?;
+            writer.write_transcripts(&transcripts)?
+        }
+        "genepredext" => {
+            let mut writer = genepredext::Writer::from_file(output_fd)?;
             writer.write_transcripts(&transcripts)?
         }
         "gtf" => {

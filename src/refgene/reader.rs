@@ -4,13 +4,10 @@ use std::io::{BufRead, BufReader};
 use std::path::Path;
 use std::str::FromStr;
 
-use crate::models::Transcripts;
-use crate::refgene::constants::*;
-use crate::utils::errors::ParseRefGeneError;
-
 use crate::models::{CdsStat, Exon, Frame, Strand, TranscriptBuilder};
-use crate::models::{Transcript, TranscriptRead};
-use crate::utils::errors::ReadWriteError;
+use crate::models::{Transcript, TranscriptRead, Transcripts};
+use crate::refgene::constants::*;
+use crate::utils::errors::{ParseRefGeneError, ReadWriteError};
 use crate::utils::exon_cds_overlap;
 
 /// Parses RefGene data and creates [`Transcript`]s.
@@ -150,33 +147,6 @@ impl<R: std::io::Read> TranscriptRead for Reader<R> {
             }
         }
         Ok(res)
-    }
-}
-
-impl<R: std::io::Read> IntoIterator for Reader<R> {
-    type Item = Result<Transcript, ParseRefGeneError>;
-    type IntoIter = TranscriptIterator<R>;
-
-    fn into_iter(self) -> TranscriptIterator<R> {
-        TranscriptIterator::new(self)
-    }
-}
-
-pub struct TranscriptIterator<R> {
-    inner: Reader<R>,
-}
-
-impl<R> TranscriptIterator<R> {
-    fn new(reader: Reader<R>) -> TranscriptIterator<R> {
-        TranscriptIterator { inner: reader }
-    }
-}
-
-impl<R: std::io::Read> Iterator for TranscriptIterator<R> {
-    type Item = Result<Transcript, ParseRefGeneError>;
-
-    fn next(&mut self) -> Option<Result<Transcript, ParseRefGeneError>> {
-        self.inner.line()
     }
 }
 
