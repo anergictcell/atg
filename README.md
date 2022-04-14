@@ -1,27 +1,41 @@
 # ATG
-_ATG_ is a library and standalone CLI tool to handle and convert different data formats used in Genomics and Transcriptomics. The library provides convenient APIs to parse GTF, GenePred and RefGene data and work with the resulting transcripts for all kind of downstream analyses.
 
-The binary can be used to convert between GTF, GenePred and RefGene data, generate bed files for transcripts or generate the nucleotide sequence as Fasta.
+Convert your genomic reference data between formats with a single tool. _ATG_ handles the conversion from and to GTF, GenePred(ext) and Refgene. You can generate bed files, fasta sequences or custom feature sequences. A single tool for all your conversion.
 
-The main purpose is actually just that - convert between GTF, GenePred and RefGene file formats. Surprsingly, there are not many tools to do this properly. Even _atg_ does not handle all edge cases of GTF - but I tried to handle as many as possible. In addition, transcripts can also be written in bed format or as fasta.
+| File format | Can be used as source | Can be created |
+| ----------- | ------------- | -------- |
+| GTF | Yes | Yes |
+| GenePred (extended) | Yes | Yes |
+| RefGene | Yes | Yes |
+| GenePred (simple) | No | Yes |
+| Bed | No | Yes |
+| Fasta | No | Yes (multiple options) |
 
-The project started only because I wanted to learn Rust. You will see that some sections have really bad code, others will have some better and more improved code. Overall, I'm still very new to Rust and I'm sure I fell for many traps and use lots of unidiomatic code. I'm happy for any feedback and improvement suggestions.
 
-The library is still in its infancy but works so far and can handle what it's supposed to do. The current API is probably going to change a lot in future updates, so be careful of using _atg_ in production or other critical workflows.
+**Reasons to use _ATG_**
+* No need to maintain multiple tools for one-way conversions (`gtfToGenePred`, `genePredToGtf`, etc). _ATG_ handles many formats and can convert in both directions.
+* Speed: _ATG_ is really fast - almost twice as fast as `gtfToGenePred`.
+* Robust parser: It handles GTF, GenePred with all extras according to spec.
+* Low memory footprint: It also runs on machines with little RAM.
+* Open for contributions: Every help is welcome improve ATG or to add more functionality.
+* You can also use _ATG_ as a library for your own Rust projects.
+
 
 ## ATG command line tool
 
 ### Install
-#### cargo
+There are currently 3 different options how to install _ATG_:
+
+##### cargo
 The easiest way to install _ATG_ is to use `cargo` (if you have `cargo` and `rust` installed)
 ```bash
 cargo install atg
 ```
 
-#### Pre-built binaries
+##### Pre-built binaries
 You can download pre-built binaries for Linux and Mac (M1) from [Github](https://github.com/anergictcell/atg/releases).
 
-#### From source
+##### From source
 You can also build _ATG_ from source (if you have the rust toolchains installed):
 
 ```bash
@@ -30,29 +44,35 @@ cd atg
 cargo build --release
 ````
 
+
 ### Usage
-Convert a GTF file to a RefGene file
+The main CLI arguments are 
+- `-f`, `--from`: Specify the file format of the source (e.g. `gtf`, `genepredext`, `refgene`)
+- `-t`, `--to`: Specify the target file format (e.g. `gtf`, `genepred`, `bed`, `fasta` etc)
+- `-i`, `--input`: Path to source file. (Use `/dev/stdin` if you are using _atg_ in a pipe)
+- `-o`, `--output`: Path to target file. Existing files will be overwritten. (Use `/dev/stdout` if you are using _atg_ in a pipe)
+- `-v`, `-vv`, `-vvv`: Verbosity (info, debug, trace)
+- `-h`, `--help`: Print the help dialog with detailed usage instructions.
+
+Additional, optional arguments:
+- `-g`, `--gtf-source`: Specify the source for GTF output files. Defaults to `atg`
+- `-r`, `--reference`: Path of a reference genome fasta file. Required for fasta output
+
+#### Examples:
 ```bash
+## Convert a GTF file to a RefGene file
 atg --from gtf --to refgene --input /path/to/input.gtf --output /path/to/output.refgene
-```
 
-Convert a GTF file to a GenePred file
-```bash
+## Convert a GTF file to a GenePred file
 atg --from gtf --to genepred --input /path/to/input.gtf --output /path/to/output.genepred
-```
 
-Convert a GTF file to a GenePredExt file
-```bash
+## Convert a GTF file to a GenePredExt file
 atg --from gtf --to genepredext --input /path/to/input.gtf --output /path/to/output.genepredext
-```
 
-Convert RefGene to GTF
-```bash
+## Convert RefGene to GTF
 atg --from refgene --to gtf --input /path/to/input.refgene --output /path/to/output.gtf
-```
 
-Convert RefGene to bed
-```bash
+## Convert RefGene to bed
 atg --from refgene --to bed --input /path/to/input.refgene --output /path/to/output.bed
 ```
 
@@ -179,17 +199,6 @@ Save Transcripts in _ATG_ binary format for faster re-reading.
 
 
 ### Tips
-Reading in GTF files is rather slow, due to the complexity of the format. If you need to repeatedly read in data from GTF, I recommend to generate a RefGene or binary file once and use this as input for subsequent steps.
-
-You can change the verbosity, by adding `-v` (show info messages), `-vv` (debug), `-vvv` (trace)
-
-On most Linux systems, you can use `--input /dev/stdin` and/or `--output /dev/stdout` to pipe into and out of atg.
-
-Of course, all commands also have shorthand parameters:
-- `-f`, `--from`
-- `-t`, `--to`
-- `-i`, `--input`
-- `-o`, `--output`
 
 
 ## ATG as library
