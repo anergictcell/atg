@@ -124,6 +124,11 @@ fn compose_lines(transcript: &Transcript, source: &str) -> Vec<GtfRecord> {
     composer.build()
 }
 
+enum UtrLocation {
+    Left,
+    Right,
+}
+
 struct Composer<'a> {
     transcript: &'a Transcript,
     source: &'a str,
@@ -155,8 +160,9 @@ impl<'a> Composer<'a> {
         }
 
         // One record for every exon
-        for exon in self.transcript.exons() {
-            lines.push(self.exon(exon));
+        for (idx, exon) in self.transcript.exons().iter().enumerate() {
+            let exon_number = idx + 1;
+            lines.push(self.exon(exon, &exon_number));
 
             if exon.is_coding() {
                 // One record for the CDS
@@ -165,6 +171,7 @@ impl<'a> Composer<'a> {
                     // provide the first and last position of stop codon
                     // see `models::transcript::stop_codon`
                     (&stop_codon[0].0, &stop_codon.last().unwrap().1),
+                    &exon_number,
                 ) {
                     lines.push(x);
                 }
@@ -175,12 +182,12 @@ impl<'a> Composer<'a> {
 
                 // upstream UTR
                 if exon.start() < self.transcript.cds_start().unwrap() {
-                    lines.push(self.utr(exon, true))
+                    lines.push(self.utr(exon, &UtrLocation::Left, &exon_number))
                 }
 
                 // downstream UTR
                 if exon.end() > self.transcript.cds_end().unwrap() {
-                    lines.push(self.utr(exon, false));
+                    lines.push(self.utr(exon, &UtrLocation::Right, &exon_number));
                 }
             }
         }
@@ -203,7 +210,7 @@ impl<'a> Composer<'a> {
             .unwrap()
     }
 
-    fn exon(&self, exon: &Exon) -> GtfRecord {
+    fn exon(&self, exon: &Exon, exon_number: &usize) -> GtfRecord {
         GtfRecordBuilder::new()
             .chrom(self.transcript.chrom())
             .source(self.source)
@@ -215,11 +222,12 @@ impl<'a> Composer<'a> {
             .frame_offset(Frame::None)
             .gene(self.transcript.gene())
             .transcript(self.transcript.name())
+            .exon_number(exon_number)
             .build()
             .unwrap()
     }
 
-    fn cds(&self, exon: &Exon, stop_codon: (&u32, &u32)) -> Option<GtfRecord> {
+    fn cds(&self, exon: &Exon, stop_codon: (&u32, &u32), exon_number: &usize) -> Option<GtfRecord> {
         // GTF specs requires that the stop codon is excluded from the CDS
         // But this only makes sense if the CDS-end-stat is "Complete".
         // For all other types of CDS-end-stat, the full CDS is returned
@@ -255,6 +263,7 @@ impl<'a> Composer<'a> {
                 .frame_offset(*exon.frame_offset())
                 .gene(self.transcript.gene())
                 .transcript(self.transcript.name())
+                .exon_number(exon_number)
                 .build()
                 .unwrap(),
         )
@@ -305,27 +314,27 @@ impl<'a> Composer<'a> {
     }
 
     /// Builds a UTR GTF line
-    fn utr(&self, exon: &Exon, left: bool) -> GtfRecord {
+    fn utr(&self, exon: &Exon, utr_location: &UtrLocation, exon_number: &usize) -> GtfRecord {
         GtfRecordBuilder::new()
             .chrom(self.transcript.chrom())
             .source(self.source)
-            .feature(match (left, self.transcript.strand()) {
-                (true, Strand::Plus) => GtfFeature::UTR5,
-                (false, Strand::Plus) => GtfFeature::UTR3,
-                (true, Strand::Minus) => GtfFeature::UTR3,
-                (false, Strand::Minus) => GtfFeature::UTR5,
+            .feature(match (utr_location, self.transcript.strand()) {
+                (UtrLocation::Left, Strand::Plus) => GtfFeature::UTR5,
+                (UtrLocation::Right, Strand::Plus) => GtfFeature::UTR3,
+                (UtrLocation::Left, Strand::Minus) => GtfFeature::UTR3,
+                (UtrLocation::Right, Strand::Minus) => GtfFeature::UTR5,
                 _ => GtfFeature::UTR,
             })
-            .start(match (left, exon.cds_end()) {
+            .start(match (utr_location, exon.cds_end()) {
                 // UTR start will only be different from exon start
                 // when the UTR is on the right side and exon is partly coding
-                (false, Some(x)) => x + 1,
+                (UtrLocation::Right, Some(x)) => x + 1,
                 _ => exon.start(),
             })
-            .end(match (left, exon.cds_start()) {
+            .end(match (utr_location, exon.cds_start()) {
                 // UTR end will only be different from exon end
                 // when the UTR is on the left side and exon is partly coding
-                (true, Some(x)) => x - 1,
+                (UtrLocation::Left, Some(x)) => x - 1,
                 _ => exon.end(),
             })
             .score_option(self.transcript.score())
@@ -333,6 +342,7 @@ impl<'a> Composer<'a> {
             .frame_offset(Frame::None)
             .gene(self.transcript.gene())
             .transcript(self.transcript.name())
+            .exon_number(exon_number)
             .build()
             .unwrap()
     }

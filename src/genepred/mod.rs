@@ -19,7 +19,7 @@
 //!
 //! The format is almost identical to RefGene, it's only missing some column. So, instead of reinventing the wheel,
 //! we copied most of refgene Writer code and just removed the extra columns.
-//! 
+//!
 //! At the moment, there is only a GenePred `Writer`. `Reader` is not yet implemented.
 //! Parsing GeneProd is not yet possible due to the missing exonFrames columns. This
 //! could be calculated during parsing, but this is not yet done.

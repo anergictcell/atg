@@ -1,11 +1,10 @@
 use std::convert::TryFrom;
-use std::io::{BufRead, BufReader};
 use std::fs::File;
+use std::io::{BufRead, BufReader};
 use std::path::Path;
 
 use crate::models::{Transcript, TranscriptRead, Transcripts};
 use crate::utils::errors::{ParseRefGeneError, ReadWriteError};
-
 
 /// Parses GenePredExt data and creates [`Transcript`]s.
 ///
@@ -118,9 +117,6 @@ impl<R: std::io::Read> Reader<R> {
     }
 }
 
-
-
-
 impl<R: std::io::Read> TranscriptRead for Reader<R> {
     /// Reads in GenePred data and returns the final list of `Transcripts`
     ///
@@ -154,12 +150,11 @@ impl<R: std::io::Read> TranscriptRead for Reader<R> {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::models::TranscriptRead;
     use crate::tests::transcripts;
-    use crate::models::{TranscriptRead};
 
     #[test]
     fn test_nm_001365057() {

@@ -142,15 +142,11 @@ impl<R: std::io::Read> TranscriptRead for Reader<R> {
     fn transcripts(&mut self) -> Result<Transcripts, ReadWriteError> {
         let mut transcript_hashmap: HashMap<String, GtfRecordsGroup> = HashMap::new();
         while let Some(line) = self.line() {
-            let gtf_record = match line {
-                Err(x) => return Err(ReadWriteError::from(x)),
-                Ok(line) => line,
-            };
-            let key = &gtf_record.transcript().to_string();
-            if transcript_hashmap.get_mut(key).is_none() {
-                transcript_hashmap.insert(key.to_string(), GtfRecordsGroup::new(key));
-            }
-            let transcript = transcript_hashmap.get_mut(key).unwrap();
+            let gtf_record = line?;
+            let transcript = transcript_hashmap
+                .entry(gtf_record.transcript().to_string())
+                .or_insert_with(|| GtfRecordsGroup::new(gtf_record.transcript()));
+
             match gtf_record.feature() {
                 GtfFeature::Exon => transcript.add_exon(gtf_record),
                 GtfFeature::CDS => transcript.add_exon(gtf_record),
