@@ -91,6 +91,7 @@ pub struct GtfRecord {
     frame_offset: Frame,
     gene: String,
     transcript: String,
+    exon_number: Option<usize>,
 }
 
 impl GtfRecord {
@@ -135,11 +136,23 @@ impl GtfRecord {
     }
 
     fn attributes_to_string(&self) -> String {
-        format!(
-            "gene_id \"{}\"; transcript_id \"{}\";",
+        let mut attributes = format!(
+            "gene_id \"{}\"; transcript_id \"{}\"; gene_name \"{}\";",
             self.gene(),
-            self.transcript()
-        )
+            self.transcript(),
+            self.gene()
+        );
+
+        if let Some(exon_number) = self.exon_number {
+            let additional_attrs = format!(
+                " exon_number \"{}\"; exon_id \"{}.{}\";",
+                exon_number,
+                self.transcript(),
+                exon_number
+            );
+            attributes.push_str(&additional_attrs)
+        }
+        attributes
     }
 
     /// Modifies an [`Exon`](crate::models::Exon) to include the [`GtfRecord`]
@@ -354,6 +367,7 @@ pub struct GtfRecordBuilder<'a> {
     score: Option<f32>,
     strand: Strand,
     frame_offset: Frame,
+    exon_number: Option<&'a usize>,
 }
 
 impl<'a> Default for GtfRecordBuilder<'a> {
@@ -375,6 +389,7 @@ impl<'a> GtfRecordBuilder<'a> {
             score: None,
             strand: Strand::Unknown,
             frame_offset: Frame::None,
+            exon_number: None,
         }
     }
 
@@ -434,6 +449,11 @@ impl<'a> GtfRecordBuilder<'a> {
 
     pub fn transcript(&mut self, transcript: &'a str) -> &mut Self {
         self.transcript = Some(transcript);
+        self
+    }
+
+    pub fn exon_number(&mut self, exon_number: &'a usize) -> &mut Self {
+        self.exon_number = Some(exon_number);
         self
     }
 
@@ -605,6 +625,7 @@ impl<'a> GtfRecordBuilder<'a> {
                 Some(x) => x.to_string(),
                 None => return Err("Missing transcript".to_string()),
             },
+            exon_number: self.exon_number.copied(),
         };
         Ok(r)
     }

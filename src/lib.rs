@@ -1,5 +1,4 @@
 #![doc = include_str!("../README.md")]
-
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/anergictcell/atg/main/assets/logo_standard.png",
     html_favicon_url = "https://raw.githubusercontent.com/anergictcell/atg/main/assets/favicon.ico"
@@ -7,8 +6,8 @@
 
 pub mod bed;
 pub mod fasta;
-pub mod genepredext;
 pub mod genepred;
+pub mod genepredext;
 pub mod gtf;
 pub mod models;
 pub mod refgene;
