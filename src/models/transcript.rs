@@ -393,27 +393,27 @@ impl PartialEq for Transcript {
     /// The fields `bin` and `score` are **not** taken into consideration
     /// for equality.
     fn eq(&self, other: &Self) -> bool {
-        if self.name != other.name {
+        if self.name() != other.name() {
             return false;
         };
 
-        if self.chrom != other.chrom {
+        if self.chrom() != other.chrom() {
             return false;
         };
 
-        if self.strand != other.strand {
+        if self.strand() != other.strand() {
             return false;
         };
 
-        if self.gene_symbol != other.gene_symbol {
+        if self.gene() != other.gene() {
             return false;
         };
 
-        if self.cds_start_stat != other.cds_start_stat {
+        if self.cds_start_stat() != other.cds_start_stat() {
             return false;
         };
 
-        if self.cds_end_stat != other.cds_end_stat {
+        if self.cds_end_stat() != other.cds_end_stat() {
             return false;
         };
 
@@ -421,7 +421,7 @@ impl PartialEq for Transcript {
             return false;
         };
 
-        for (exon_a, exon_b) in self.exons.iter().zip(&other.exons) {
+        for (exon_a, exon_b) in self.exons().iter().zip(other.exons()) {
             if exon_a != exon_b {
                 return false;
             }
