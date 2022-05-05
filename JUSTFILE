@@ -43,14 +43,24 @@ new version:
 
 test:
     #!/usr/bin/env zsh
-    cargo clippy && cargo fmt && cargo test -q && cargo doc
+    echo -ne "Checking formatting and doc generation"
+    (cargo clippy && cargo fmt --check && cargo test -q && cargo doc && \
+    echo " \e[32m\e[1mOK\e[0m") || echo "\e[31m\e[1mERROR\e[0m"
     echo -ne "Checking GTF to RefGene"
-    diff <( cargo run -- -f gtf -i tests/data/example.gtf -t refgene -o /dev/stdout 2> /dev/null | sort ) tests/data/example.refgene
-    echo " \e[32m\e[1mOK\e[0m"
+    (diff <( cargo run -- -f gtf -i tests/data/example.gtf -t refgene -o /dev/stdout 2> /dev/null | sort ) tests/data/example.refgene && \
+    echo " \e[32m\e[1mOK\e[0m") || echo "\e[31m\e[1mERROR\e[0m"
     echo -ne "Checking RefGene to GTF"
-    diff <( cargo run -- -f refgene -i tests/data/example.refgene -t gtf -g ncbiRefSeq.2021-05-17 -o /dev/stdout 2> /dev/null | cut -f1-5,7-8 | sort ) <( cut -f1-5,7-8 tests/data/example.gtf)
-    echo " \e[32m\e[1mOK\e[0m"
-
+    (diff <( cargo run -- -f refgene -i tests/data/example.refgene -t gtf -g ncbiRefSeq.2021-05-17 -o /dev/stdout 2> /dev/null | cut -f1-5,7-8 | sort ) <( cut -f1-5,7-8 tests/data/example.gtf) && \
+    echo " \e[32m\e[1mOK\e[0m") || echo "\e[31m\e[1mERROR\e[0m"
+    echo -ne "Checking uniqness of GTF attribute column across exons"
+    (diff <( cargo run -- -f refgene -i tests/data/example.refgene -t gtf -g ncbiRefSeq.2021-05-17 -o /dev/stdout 2> /dev/null | grep "\texon\t" | cut -f9 | uniq -c | awk '{print $1}' | sort | uniq -c) <(echo " 695 1") && \
+    echo " \e[32m\e[1mOK\e[0m") || echo "\e[31m\e[1mERROR\e[0m"
+    echo -ne "Checking exon numbering in exon, CDS, and UTR"
+    (diff <( cargo run -- -f refgene -i tests/data/example.refgene -t gtf -g ncbiRefSeq.2021-05-17 -o /dev/stdout 2> /dev/null | grep "\texon\t" | grep "NM_004015.3.18" | wc -l | sed "s/ //g") <(echo "1") && \
+    diff <( cargo run -- -f refgene -i tests/data/example.refgene -t gtf -g ncbiRefSeq.2021-05-17 -o /dev/stdout 2> /dev/null | grep "\tCDS\t" | grep "NM_004015.3.18" | wc -l | sed "s/ //g") <(echo "1") && \
+    diff <( cargo run -- -f refgene -i tests/data/example.refgene -t gtf -g ncbiRefSeq.2021-05-17 -o /dev/stdout 2> /dev/null | grep "\t5UTR\t" | grep "NM_004015.3.18" | wc -l | sed "s/ //g") <(echo "1") && \
+    diff <( cargo run -- -f refgene -i tests/data/example.refgene -t gtf -g ncbiRefSeq.2021-05-17 -o /dev/stdout 2> /dev/null | grep "NM_004015.3.18" | wc -l | sed "s/ //g") <(echo "3") && \
+    echo " \e[32m\e[1mOK\e[0m") || echo "\e[31m\e[1mERROR\e[0m"
 
 benchmark name:
     cargo build --release --target=aarch64-apple-darwin
