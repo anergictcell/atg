@@ -270,8 +270,8 @@ impl Transcript {
             return vec![];
         }
         let codon = match self.strand {
-            Strand::Minus => Codon::downstream(self, &self.cds_start().unwrap()),
-            Strand::Plus => Codon::upstream(self, &self.cds_end().unwrap()),
+            Strand::Minus => Codon::downstream(self, &self.cds_start().unwrap()), // cannot fail, tx is coding
+            Strand::Plus => Codon::upstream(self, &self.cds_end().unwrap()), // cannot fail, tx is coding
             _ => return vec![],
         };
         if let Ok(res) = codon {
@@ -317,8 +317,8 @@ impl Transcript {
         let mut coords: CoordinateVector = vec![];
         for exon in self.exons() {
             if exon.is_coding() {
-                let cds_start = exon.cds_start().unwrap();
-                let cds_end = exon.cds_end().unwrap();
+                let cds_start = exon.cds_start().unwrap(); // cannot fail, exon is coding
+                let cds_end = exon.cds_end().unwrap(); // cannot fail, exon is coding
                 if cds_start > exon.start() {
                     coords.push((self.chrom(), exon.start(), cds_start - 1))
                 }
@@ -341,10 +341,10 @@ impl Transcript {
         let mut utr = self.utr_coordinates();
         if self.is_coding() {
             if self.forward() {
-                let start = self.cds_start().unwrap();
+                let start = self.cds_start().unwrap(); // cannot fail, exon is coding
                 utr.retain(|coord| coord.2 < start);
             } else {
-                let end = self.cds_end().unwrap();
+                let end = self.cds_end().unwrap(); // cannot fail, exon is coding
                 utr.retain(|coord| coord.1 > end);
             }
         }
@@ -360,10 +360,10 @@ impl Transcript {
         let mut utr = self.utr_coordinates();
         if self.is_coding() {
             if self.forward() {
-                let end = self.cds_end().unwrap();
+                let end = self.cds_end().unwrap(); // cannot fail, exon is coding
                 utr.retain(|coord| coord.1 > end);
             } else {
-                let start = self.cds_start().unwrap();
+                let start = self.cds_start().unwrap(); // cannot fail, exon is coding
                 utr.retain(|coord| coord.2 < start);
             }
             utr

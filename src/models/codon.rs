@@ -69,15 +69,11 @@ impl Codon {
                 continue;
             }
 
-            let cds_start = exon
-                .cds_start()
-                .unwrap_or_else(|| panic!("No CDS-start in exon {}", exon));
+            let cds_start = exon.cds_start().unwrap(); // cannot fail, exon is coding
             match intersect(
                 (
                     &cds_start,
-                    &exon
-                        .cds_end()
-                        .unwrap_or_else(|| panic!("No CDS-end in exon {}", exon)),
+                    &exon.cds_end().unwrap(), // cannot fail, exon is coding
                 ),
                 // len == 0 => start + 2  ==> 3 bp
                 // len == 1 => start + 1  ==> 2 bp
@@ -90,7 +86,7 @@ impl Codon {
                         transcript.chrom(),
                         start,
                         end,
-                        Frame::from_int((3 - len) % 3).unwrap(),
+                        Frame::from_int((3 - len) % 3).unwrap(), // cannot fail
                         transcript.strand(),
                     ));
                     len += end - start + 1
@@ -175,9 +171,11 @@ impl Codon {
             return Err(BuildCodonError::new("transcript is non-coding"));
         }
         if start > &transcript.cds_end().unwrap() {
+            // cannot fail, transcript is coding
             return Err(BuildCodonError::new("start is downstream of the CDS"));
         }
         if start < &transcript.cds_start().unwrap() {
+            // cannot fail, transcript is coding
             return Err(BuildCodonError::new("start is upstream of the CDS"));
         }
         Ok(())

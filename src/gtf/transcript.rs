@@ -59,7 +59,7 @@ impl GtfRecordsGroup {
         if self.exons.is_empty() {
             return None;
         }
-        let mut exon = Exon::from(self.exons.pop().unwrap());
+        let mut exon = Exon::from(self.exons.pop().unwrap()); // cannot fail, we test for emptyness of the exon vec
 
         loop {
             let line = self.exons.pop();

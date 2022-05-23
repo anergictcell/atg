@@ -155,7 +155,7 @@ impl Exon {
         }
         // counting the first base as part of the ORF
         // using unwrap here is safe, because the exon is coding
-        self.cds_end.unwrap() - self.cds_start.unwrap() + 1
+        self.cds_end.unwrap() - self.cds_start.unwrap() + 1 // cannot fail, exon is coding
     }
 
     /// Returns the coding frame of the next coding exon
@@ -166,6 +166,7 @@ impl Exon {
         let frame = (3 - (self.coding_len() % 3)) % 3;
         // using unwrap here is safe, because we ensure to only have 0,1,2 frame
         match self.frame_offset + Frame::from_int(frame).unwrap() {
+            // cannot fail, frame is %3
             Ok(x) => Some(x),
             Err(_) => None,
         }

@@ -170,7 +170,7 @@ impl<'a> Composer<'a> {
                     exon,
                     // provide the first and last position of stop codon
                     // see `models::transcript::stop_codon`
-                    (&stop_codon[0].0, &stop_codon.last().unwrap().1),
+                    (&stop_codon[0].0, &stop_codon.last().unwrap().1), // cannot fail, the exon is coding
                     &exon_number,
                 ) {
                     lines.push(x);
@@ -182,11 +182,13 @@ impl<'a> Composer<'a> {
 
                 // upstream UTR
                 if exon.start() < self.transcript.cds_start().unwrap() {
+                    // cannot fail, the transcript is coding
                     lines.push(self.utr(exon, &UtrLocation::Left, &exon_number))
                 }
 
                 // downstream UTR
                 if exon.end() > self.transcript.cds_end().unwrap() {
+                    // cannot fail, the transcript is coding
                     lines.push(self.utr(exon, &UtrLocation::Right, &exon_number));
                 }
             }
@@ -207,7 +209,7 @@ impl<'a> Composer<'a> {
             .gene(self.transcript.gene())
             .transcript(self.transcript.name())
             .build()
-            .unwrap()
+            .unwrap() // cannot fail, since we control all fields for the build
     }
 
     fn exon(&self, exon: &Exon, exon_number: &usize) -> GtfRecord {
@@ -224,7 +226,7 @@ impl<'a> Composer<'a> {
             .transcript(self.transcript.name())
             .exon_number(exon_number)
             .build()
-            .unwrap()
+            .unwrap() // cannot fail, since we control all fields for the build
     }
 
     fn cds(&self, exon: &Exon, stop_codon: (&u32, &u32), exon_number: &usize) -> Option<GtfRecord> {
@@ -265,7 +267,7 @@ impl<'a> Composer<'a> {
                 .transcript(self.transcript.name())
                 .exon_number(exon_number)
                 .build()
-                .unwrap(),
+                .unwrap(), // cannot fail, since we control all fields for the build
         )
     }
 
@@ -286,7 +288,7 @@ impl<'a> Composer<'a> {
                     .gene(self.transcript.gene())
                     .transcript(self.transcript.name())
                     .build()
-                    .unwrap()
+                    .unwrap() // cannot fail, since we control all fields for the build
             })
             .collect()
     }
@@ -308,7 +310,7 @@ impl<'a> Composer<'a> {
                     .gene(self.transcript.gene())
                     .transcript(self.transcript.name())
                     .build()
-                    .unwrap()
+                    .unwrap() // cannot fail, since we control all fields for the build
             })
             .collect()
     }
@@ -344,7 +346,7 @@ impl<'a> Composer<'a> {
             .transcript(self.transcript.name())
             .exon_number(exon_number)
             .build()
-            .unwrap()
+            .unwrap() // cannot fail, since we control all fields for the build
     }
 }
 
