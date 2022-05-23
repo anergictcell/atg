@@ -35,6 +35,7 @@ use crate::utils::errors::ReadWriteError;
 /// ```
 pub struct Reader<R> {
     inner: std::io::BufReader<R>,
+    line_content: String,
 }
 
 impl Reader<File> {
@@ -77,6 +78,7 @@ impl<R: std::io::Read> Reader<R> {
     pub fn new(reader: R) -> Self {
         Reader {
             inner: BufReader::new(reader),
+            line_content: String::with_capacity(200),
         }
     }
 
@@ -86,6 +88,7 @@ impl<R: std::io::Read> Reader<R> {
     pub fn with_capacity(capacity: usize, reader: R) -> Self {
         Reader {
             inner: BufReader::with_capacity(capacity, reader),
+            line_content: String::with_capacity(200),
         }
     }
 
@@ -94,8 +97,8 @@ impl<R: std::io::Read> Reader<R> {
     /// This method should rarely be used. GTF files can contain unordered
     /// records and handling lines individually is rarely desired.
     fn line(&mut self) -> Option<Result<GtfRecord, ParseGtfError>> {
-        let mut line = String::new();
-        match self.inner.read_line(&mut line) {
+        self.line_content.clear();
+        match self.inner.read_line(&mut self.line_content) {
             Ok(_) => {}
             Err(x) => {
                 return Some(Err(ParseGtfError {
@@ -104,14 +107,14 @@ impl<R: std::io::Read> Reader<R> {
             }
         }
 
-        if line.starts_with('#') {
+        if self.line_content.starts_with('#') {
             return self.line();
         }
 
-        if line.is_empty() {
+        if self.line_content.is_empty() {
             None
         } else {
-            Some(GtfRecord::from_str(line.trim_end()))
+            Some(GtfRecord::from_str(self.line_content.trim_end()))
         }
     }
 }
@@ -139,15 +142,11 @@ impl<R: std::io::Read> TranscriptRead for Reader<R> {
     fn transcripts(&mut self) -> Result<Transcripts, ReadWriteError> {
         let mut transcript_hashmap: HashMap<String, GtfRecordsGroup> = HashMap::new();
         while let Some(line) = self.line() {
-            let gtf_record = match line {
-                Err(x) => return Err(ReadWriteError::from(x)),
-                Ok(line) => line,
-            };
-            let key = &gtf_record.transcript().to_string();
-            if transcript_hashmap.get_mut(key).is_none() {
-                transcript_hashmap.insert(key.to_string(), GtfRecordsGroup::new(key));
-            }
-            let transcript = transcript_hashmap.get_mut(key).unwrap();
+            let gtf_record = line?;
+            let transcript = transcript_hashmap
+                .entry(gtf_record.transcript().to_string())
+                .or_insert_with(|| GtfRecordsGroup::new(gtf_record.transcript()));
+
             match gtf_record.feature() {
                 GtfFeature::Exon => transcript.add_exon(gtf_record),
                 GtfFeature::CDS => transcript.add_exon(gtf_record),

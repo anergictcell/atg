@@ -1,4 +1,3 @@
-use std::convert::TryInto;
 use std::fs::File;
 use std::io::{BufWriter, Write};
 use std::path::Path;
@@ -344,6 +343,13 @@ enum SequenceBuilder {
 
 impl SequenceBuilder {
     /// Builds the actual Sequence
+    ///
+    /// # Panics
+    ///
+    /// This method panics if the transcript cannot be converted to a Sequence.
+    /// This could happen when the transcript's location is out of bounds of the Fasta file,
+    /// the Fasta file becomes unavaible during the reading
+    /// or if the Fasta file contains invalid Nucleotides
     pub fn build(&self, transcript: &Transcript, fasta_reader: &mut FastaReader<File>) -> Sequence {
         let segments = match self {
             SequenceBuilder::Cds => transcript.cds_coordinates(),
@@ -356,13 +362,13 @@ impl SequenceBuilder {
         };
 
         let capacity: u32 = segments.iter().map(|x| x.2 - x.1 + 1).sum();
-        let mut seq = Sequence::with_capacity(capacity.try_into().unwrap()); // unwrap can't fail
+        let mut seq = Sequence::with_capacity(capacity as usize);
 
         for segment in segments {
             seq.append(
                 fasta_reader
                     .read_sequence(segment.0, segment.1.into(), segment.2.into())
-                    .unwrap(),
+                    .unwrap(), // possible panic documented in signature
             )
         }
         if !transcript.forward() {

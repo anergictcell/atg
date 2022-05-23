@@ -1,5 +1,5 @@
 pub const MIN_GTF_COLUMNS: usize = 9;
-pub const MAX_GTF_COLUMNS: usize = 10;
+// pub const MAX_GTF_COLUMNS: usize = 10;
 
 pub const CHROMOSOME_COL: usize = 0;
 pub const SOURCE_COL: usize = 1;
