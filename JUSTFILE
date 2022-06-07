@@ -58,7 +58,11 @@ test:
     echo -ne "Checking exon numbering in exon, CDS, and UTR"
     (diff <( cargo run -- -f refgene -i tests/data/example.refgene -t gtf -g ncbiRefSeq.2021-05-17 -o /dev/stdout 2> /dev/null | grep "\texon\t" | grep "NM_004015.3.18" | wc -l | sed "s/ //g") <(echo "1") && \
     diff <( cargo run -- -f refgene -i tests/data/example.refgene -t gtf -g ncbiRefSeq.2021-05-17 -o /dev/stdout 2> /dev/null | grep "\tCDS\t" | grep "NM_004015.3.18" | wc -l | sed "s/ //g") <(echo "1") && \
-    diff <( cargo run -- -f refgene -i tests/data/example.refgene -t gtf -g ncbiRefSeq.2021-05-17 -o /dev/stdout 2> /dev/null | grep "\t5UTR\t" | grep "NM_004015.3.18" | wc -l | sed "s/ //g") <(echo "1") && \
+    diff <( cargo run -- -f refgene -i tests/data/example.refgene -t gtf -g ncbiRefSeq.2021-05-17 -o /dev/stdout 2> /dev/null | grep "\t5UTR\t" | grep "NM_004015.3.18" | wc -l | sed "s/ //g") <(echo "0") && \
+    diff <( cargo run -- -f refgene -i tests/data/example.refgene -t gtf -g ncbiRefSeq.2021-05-17 -o /dev/stdout 2> /dev/null | grep "\t5UTR\t" | grep "NM_004015.3.0" | wc -l | sed "s/ //g") <(echo "0") && \
+    diff <( cargo run -- -f refgene -i tests/data/example.refgene -t gtf -g ncbiRefSeq.2021-05-17 -o /dev/stdout 2> /dev/null | grep "\t5UTR\t" | grep "NM_004015.3.1" | wc -l | sed "s/ //g") <(echo "1") && \
+    diff <( cargo run -- -f refgene -i tests/data/example.refgene -t gtf -g ncbiRefSeq.2021-05-17 -o /dev/stdout 2> /dev/null | grep "\t5UTR\t" | grep "NM_004015.3.2" | wc -l | sed "s/ //g") <(echo "0") && \
+    diff <( cargo run -- -f refgene -i tests/data/example.refgene -t gtf -g ncbiRefSeq.2021-05-17 -o /dev/stdout 2> /dev/null | grep "\t3UTR\t" | grep "NM_004015.3.18" | wc -l | sed "s/ //g") <(echo "1") && \
     diff <( cargo run -- -f refgene -i tests/data/example.refgene -t gtf -g ncbiRefSeq.2021-05-17 -o /dev/stdout 2> /dev/null | grep "NM_004015.3.18" | wc -l | sed "s/ //g") <(echo "3") && \
     echo " \e[32m\e[1mOK\e[0m") || echo "\e[31m\e[1mERROR\e[0m"
 

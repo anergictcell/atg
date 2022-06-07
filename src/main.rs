@@ -6,22 +6,24 @@ use std::process;
 use bincode::{deserialize_from, serialize_into};
 use clap::{App, Arg, ArgMatches};
 
-use atg::fasta::FastaReader;
-use atg::models::Transcripts;
-use atg::utils::errors::AtgError;
+use atglib::fasta::FastaReader;
+use atglib::models::Transcripts;
+use atglib::utils::errors::AtgError;
 
-use atg::bed;
-use atg::fasta;
-use atg::genepred;
-use atg::genepredext;
-use atg::gtf;
-use atg::models::TranscriptWrite;
-use atg::read_transcripts;
-use atg::refgene;
+use atglib::bed;
+use atglib::fasta;
+use atglib::genepred;
+use atglib::genepredext;
+use atglib::gtf;
+use atglib::models::TranscriptWrite;
+use atglib::read_transcripts;
+use atglib::refgene;
+
+pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 fn parse_cli_args() -> ArgMatches<'static> {
     App::new(env!("CARGO_PKG_NAME"))
-        .version(atg::VERSION)
+        .version(VERSION)
         .author(env!("CARGO_PKG_AUTHORS"))
         .about(
             "Convert transcript data from and to different file formats\n\n\
@@ -140,7 +142,10 @@ fn read_input_file(input_format: &str, input_fd: &str) -> Result<Transcripts, At
         "gtf" => read_transcripts(gtf::Reader::from_file(input_fd))?,
         "bin" => {
             let reader = File::open(input_fd)?;
-            deserialize_from(reader)?
+            match deserialize_from(reader) {
+                Ok(res) => res,
+                Err(err) => return Err(AtgError::new(err)),
+            }
         }
         _ => {
             return Err(AtgError::from(format!(
@@ -223,7 +228,10 @@ fn write_output(
         }
         "bin" => {
             let writer = File::create(output_fd)?;
-            serialize_into(&writer, &transcripts)?;
+            match serialize_into(&writer, &transcripts) {
+                Ok(res) => res,
+                Err(err) => return Err(AtgError::new(err)),
+            }
         }
         "raw" => {
             for t in transcripts {

@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.5.1
+- Fix exon sorting to take the transcirpt orientation into account
+
 ## 0.5
 - Add exon numbers in GTF output
 - Refactor GTF parsing to improve performance
