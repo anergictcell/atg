@@ -1,6 +1,7 @@
 # Changelog
 
 ## 0.5.1
+- Uncouple the lib from the CLI, make an extra atglib crate
 - Fix exon sorting to take the transcirpt orientation into account
 
 ## 0.5
