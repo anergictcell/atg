@@ -24,10 +24,21 @@ dependencies = [
 name = "atg"
 version = "0.5.1"
 dependencies = [
+ "atglib",
  "bincode",
  "clap",
  "log",
  "loggerv",
+ "serde",
+]
+
+[[package]]
+name = "atglib"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4fee4949c248704a6a9171143f9ca6dadeb770a99088f372ec1a37cb6d3c23c9"
+dependencies = [
+ "log",
  "serde",
 ]
 
