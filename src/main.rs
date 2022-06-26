@@ -16,9 +16,9 @@ use atglib::genepred;
 use atglib::genepredext;
 use atglib::gtf;
 use atglib::models::TranscriptWrite;
+use atglib::qc;
 use atglib::read_transcripts;
 use atglib::refgene;
-use atglib::qc;
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
