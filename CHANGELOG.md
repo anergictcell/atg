@@ -1,5 +1,10 @@
 # Changelog
 
+# 0.6.0
+- Switch to ATGlib 0.1.3
+    - ncExons in `feature-sequence` for non-coding transcripts
+    - Add QC module
+
 ## 0.5.1
 - Uncouple the lib from the CLI, make an extra atglib crate
 - Fix exon sorting to take the transcirpt orientation into account

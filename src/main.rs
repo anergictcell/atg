@@ -18,6 +18,7 @@ use atglib::gtf;
 use atglib::models::TranscriptWrite;
 use atglib::read_transcripts;
 use atglib::refgene;
+use atglib::qc;
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -35,6 +36,7 @@ fn parse_cli_args() -> ArgMatches<'static> {
               * bed              - Bedfile (one transcript per line)\n\
               * fasta            - Nucleotide sequence. There are multiple formatting options available\n\
               * feature-sequence - Nucleotide sequence for every feature\n\
+              * qc               - Performs QC checks on all Transcripts\n\
               * bin              - Binary format"
         )
         .after_help(format!(
@@ -56,7 +58,7 @@ fn parse_cli_args() -> ArgMatches<'static> {
             Arg::with_name("to")
                 .short("t")
                 .long("to")
-                .possible_values(&["genepred", "genepredext", "refgene", "gtf", "bed", "fasta", "fasta-split", "feature-sequence", "raw", "bin", "none"])
+                .possible_values(&["genepred", "genepredext", "refgene", "gtf", "bed", "fasta", "fasta-split", "feature-sequence", "raw", "bin", "qc", "none"])
                 .case_insensitive(true)
                 .value_name("file-format")
                 .help("data format of the output")
@@ -103,7 +105,8 @@ fn parse_cli_args() -> ArgMatches<'static> {
                 .required_ifs(&[
                     ("to", "fasta"),
                     ("to", "fasta-split"),
-                    ("to", "feature-sequence")
+                    ("to", "feature-sequence"),
+                    ("to", "qc")
                 ])
         )
         .arg(
@@ -225,6 +228,12 @@ fn write_output(
             for tx in transcripts {
                 writer.write_features(&tx)?
             }
+        }
+        "qc" => {
+            let mut writer = qc::Writer::from_file(output_fd)?;
+            writer.fasta_reader(FastaReader::from_file(fasta_reference.unwrap())?);
+            writer.write_header()?;
+            writer.write_transcripts(&transcripts)?
         }
         "bin" => {
             let writer = File::create(output_fd)?;
