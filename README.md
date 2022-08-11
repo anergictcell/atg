@@ -10,6 +10,7 @@ Convert your genomic reference data between formats with a single tool. _ATG_ ha
 | GenePred (simple) | No | Yes |
 | Bed | No | Yes |
 | Fasta | No | Yes (multiple options) |
+| SpliceAI gene annotation | No | Yes |
 
 
 **Reasons to use _ATG_**
@@ -33,7 +34,7 @@ cargo install atg
 ```
 
 ##### Pre-built binaries
-You can download pre-built binaries for Linux and Mac (M1) from [Github](https://github.com/anergictcell/atg/releases).
+You can download pre-built binaries for Linux and Mac from [Github](https://github.com/anergictcell/atg/releases).
 
 ##### From source
 You can also build _ATG_ from source (if you have the rust toolchains installed):
@@ -191,6 +192,17 @@ C9orf85 NM_001365057.2  chr9    74597573    74597573    +   CDS     A
 C9orf85 NM_001365057.2  chr9    74597574    74600974    +   3UTR    TGGAGTCTCC...
 ```
 
+#### spliceai
+This is a custom format useful for [SpliceAI](https://github.com/Illumina/SpliceAI)
+splice predictions. The repo lists [example files](https://github.com/Illumina/SpliceAI/tree/master/spliceai/annotations).
+The output has one gene per row, each gene record contains a consensus transcript, created by merging overlapping exons.
+
+```text
+#NAME       CHROM   STRAND  TX_START    TX_END  EXON_START      EXON_END
+OR4F5       1       +       69090       70008   69090,          70008,
+AL627309.1  1       -       134900      139379  134900,137620,  135802,139379,
+```
+
 #### raw
 This is mainly useful for debugging, as it gives a quick glimpse into the Exons and CDS coordinates of the transcripts.
 
@@ -198,48 +210,9 @@ This is mainly useful for debugging, as it gives a quick glimpse into the Exons 
 Save Transcripts in _ATG_ binary format for faster re-reading.
 
 
-### Tips
-
-
 ## ATG as library
-[The library API is mostly documented inline and available on docs.rs](https://docs.rs/atg)
+_ATG_ uses the _atglib_ library, which is documented inline and available on [docs.rs](https://docs.rs/atglib)
 
-### Examples
-
-#### Convert GTF to RefGene
-```rust
-use atg::gtf::Reader;
-use atg::refgene::Writer;
-use atg::models::{TranscriptRead, TranscriptWrite};
-
-let mut reader = Reader::from_file("tests/data/example.gtf")
-    .unwrap_or_else(|_| panic!("Error opening input file."));
-
-let mut writer = Writer::from_file("/dev/null")
-    .unwrap_or_else(|_| panic!("Unable to open output file"));
-
-let transcripts = reader.transcripts()
-    .unwrap_or_else(|err| panic!("Error parsing GTF: {}", err));
-
-match writer.write_transcripts(&transcripts) {
-    Ok(_) => println!("Success"),
-    Err(err) => panic!("Error writing RefGene file: {}", err)
-};
-```
-
-
-## ToDo / Next tasks
-- [x] Add to crates.io
-- [x] Bed module to generate bed files with exons and introns
-- [x] GenePred & GenePredExt modules
-- [ ] Compare transcripts from two different inputs
-- [x] Add fasta reading for nt and aa sequence outputs
-- [x] Binary data format
-- [ ] use [Smartstring](https://crates.io/crates/smartstring) or [Smallstr](https://crates.io/crates/smallstr) for gene-symbol, transcript name and chromosome
-- [ ] Remove function to sanitize chromosome name with `chr` prefix
-- [ ] Parallelize input parsing
-- [ ] Check if exons can be stored in smaller vec
-- [ ] Use std::mem::replace to move out of attributes, e.g. in TranscriptBuilder and remove Copy/Clone traits <https://stackoverflow.com/questions/31307680/how-to-move-one-field-out-of-a-struct-that-implements-drop-trait>
 
 ## Known issues
 ### GTF parsing
