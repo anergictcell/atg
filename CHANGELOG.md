@@ -1,6 +1,10 @@
 # Changelog
 
-# 0.6.0
+## 0.7.0
+- Switch to ATGlib 0.1.4
+- Add `spliceai` ouput format
+
+## 0.6.0
 - Switch to ATGlib 0.1.3
     - ncExons in `feature-sequence` for non-coding transcripts
     - Add QC module

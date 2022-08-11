@@ -23,6 +23,8 @@ new version:
 @build version: (check version)
     cargo build --release --target=aarch64-apple-darwin
     cp target/aarch64-apple-darwin/release/atg target/atg-{{version}}-aarch64-apple-darwin
+    cargo build --release --target=x86_64-apple-darwin
+    cp target/x86_64-apple-darwin/release/atg target/atg-{{version}}-x86_64-apple-darwin
     cargo build --release --target=x86_64-unknown-linux-gnu
     cp target/x86_64-unknown-linux-gnu/release/atg target/atg-{{version}}-x86_64-unknown-linux-gnu
     cargo build --release --target=x86_64-unknown-linux-musl

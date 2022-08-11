@@ -19,6 +19,7 @@ use atglib::models::TranscriptWrite;
 use atglib::qc;
 use atglib::read_transcripts;
 use atglib::refgene;
+use atglib::spliceai;
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -36,6 +37,7 @@ fn parse_cli_args() -> ArgMatches<'static> {
               * bed              - Bedfile (one transcript per line)\n\
               * fasta            - Nucleotide sequence. There are multiple formatting options available\n\
               * feature-sequence - Nucleotide sequence for every feature\n\
+              * spliceai         - Custom format, as needed for SpliceAI\n\
               * qc               - Performs QC checks on all Transcripts\n\
               * bin              - Binary format"
         )
@@ -58,7 +60,7 @@ fn parse_cli_args() -> ArgMatches<'static> {
             Arg::with_name("to")
                 .short("t")
                 .long("to")
-                .possible_values(&["genepred", "genepredext", "refgene", "gtf", "bed", "fasta", "fasta-split", "feature-sequence", "raw", "bin", "qc", "none"])
+                .possible_values(&["genepred", "genepredext", "refgene", "gtf", "bed", "fasta", "fasta-split", "feature-sequence", "spliceai", "raw", "bin", "qc", "none"])
                 .case_insensitive(true)
                 .value_name("file-format")
                 .help("data format of the output")
@@ -228,6 +230,10 @@ fn write_output(
             for tx in transcripts {
                 writer.write_features(&tx)?
             }
+        }
+        "spliceai" => {
+            let mut writer = spliceai::Writer::from_file(output_fd)?;
+            writer.write_transcripts(&transcripts)?
         }
         "qc" => {
             let mut writer = qc::Writer::from_file(output_fd)?;
