@@ -177,7 +177,7 @@ fn write_output(
 ) -> Result<(), AtgError> {
     debug!("Writing transcripts as {} to {}", output_format, output_fd);
 
-    let _ = match output_format {
+    match output_format {
         "refgene" => {
             let mut writer = refgene::Writer::from_file(output_fd)?;
             writer.write_transcripts(&transcripts)?
