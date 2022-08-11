@@ -1,6 +1,6 @@
 [package]
 name = "atg"
-version = "0.6.0"
+version = "0.7.0"
 authors = ["Jonas Marcello <jonas.marcello@esbme.com>"]
 edition = "2018"
 description = "A utility to handle transcripts for genomics and transcriptomics"
