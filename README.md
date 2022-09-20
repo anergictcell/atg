@@ -11,6 +11,7 @@ Convert your genomic reference data between formats with a single tool. _ATG_ ha
 | Bed | No | Yes |
 | Fasta | No | Yes (multiple options) |
 | SpliceAI gene annotation | No | Yes |
+| Quality Checks | No | Yes |
 
 
 **Reasons to use _ATG_**
@@ -18,6 +19,7 @@ Convert your genomic reference data between formats with a single tool. _ATG_ ha
 * Speed: _ATG_ is really fast - almost twice as fast as `gtfToGenePred`.
 * Robust parser: It handles GTF, GenePred with all extras according to spec.
 * Low memory footprint: It also runs on machines with little RAM.
+* Extra features, such as quality control and correctness checks.
 * Open for contributions: Every help is welcome improve ATG or to add more functionality.
 * You can also use _ATG_ as a library for your own Rust projects.
 
@@ -43,7 +45,7 @@ You can also build _ATG_ from source (if you have the rust toolchains installed)
 git clone https://github.com/anergictcell/atg.git
 cd atg
 cargo build --release
-````
+```
 
 
 ### Usage
@@ -58,6 +60,7 @@ The main CLI arguments are
 Additional, optional arguments:
 - `-g`, `--gtf-source`: Specify the source for GTF output files. Defaults to `atg`
 - `-r`, `--reference`: Path of a reference genome fasta file. Required for fasta output
+- `-c`, `--genetic-code`: Specify which genetic code to use for translating the transcripts. Genetic codes can be specified per chromosome by specifying the chromsome and the code, separated by `:` (e.g. `-c chrM:vertebrate mitochondrial`). They can also be specified for all chromsomes by omitting the chromosome (e.g. `-c vertebrate mitochondrial`). The argument can be specified multiple times (e.g: `-c "standard" -c "chrM:vertebrate mitochondrial" -c "chrAYN:alternative yeast nuclear"`). The code names are based on the `name` field from the [NCBI specs](https://www.ncbi.nlm.nih.gov/IEB/ToolBox/C_DOC/lxr/source/data/gc.prt) but all lowercase characters. Alternatively, you can also specify the amino acid lookup table directly: `-c "chrM:FFLLSSSSYY**CCWWLLLLPPPPHHQQRRRRIIMMTTTTNNKKSS**VVVVAAAADDEEGGGG"`. Defaults to `standard`.
 
 #### Examples:
 ```bash
@@ -201,6 +204,32 @@ The output has one gene per row, each gene record contains a consensus transcrip
 #NAME       CHROM   STRAND  TX_START    TX_END  EXON_START      EXON_END
 OR4F5       1       +       69090       70008   69090,          70008,
 AL627309.1  1       -       134900      139379  134900,137620,  135802,139379,
+```
+
+#### qc
+Runs some basic consistency checks on the transcripts:
+
+| QC check | Explanation | Non-Coding vs Coding | requires Fasta File |
+| --- | --- | --- | --- |
+| Exon | Contains at least one exon | all | no |
+| Correct CDS Length | The length of the CDS is divisible by 3 | Coding | no |
+| Correct Start Codon | The CDS starts with `ATG` | Coding | yes |
+| Correct Stop Codon | The CDS ends with a Stop codon `TAG`, `TAA`, or `TGA` | Coding | yes |
+| No upstream Start Codon | The 5'UTR does not contain another start codon `ATG` (This test do not make sense biologically. It is totally fine for a transcript to have upstream `ATG` start cordons that are not utilized but the ribosome.) | Coding | yes |
+| No upstream Stop Codon| The CDS does not contain another in-frame stop-codon | Coding | yes |
+| No Start codon | The full exon sequence does not contain a start codon `ATG` (Biologically speaking, a non-coding transcript could have `ATG` start codons that are not utilized) | Non-Coding | yes |
+| Correct Coordinates | The transcript is within the coordinates of the reference genome | all | yes |
+
+**Test results:**
+- `NA` Test could not be performed (e.g. CDS-length for non-coding transcripts), so no conclusion could be drawn
+- `OK` The test succeeded with an OK results
+- `NOK` The test failed and gave a NOT OK result
+
+```text
+Gene     transcript     Exon  CDS Length  Correct Start Codon  Correct Stop Codon  No upstream Start Codon  No upstream Stop Codon  Correct Coordinates
+FAM239A  NR_146581.1    OK    N/A         N/A                  N/A                 OK                       N/A                     OK
+OR5H2    NM_001005482.1 OK    OK          OK                   OK                  OK                       OK                      OK
+SNX20    NM_001144972.2 OK    OK          OK                   OK                  NOK                      OK                      OK
 ```
 
 #### raw

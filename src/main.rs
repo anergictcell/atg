@@ -15,7 +15,7 @@ use atglib::fasta;
 use atglib::genepred;
 use atglib::genepredext;
 use atglib::gtf;
-use atglib::models::TranscriptWrite;
+use atglib::models::{GeneticCode, TranscriptWrite};
 use atglib::qc;
 use atglib::read_transcripts;
 use atglib::refgene;
@@ -23,7 +23,7 @@ use atglib::spliceai;
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
-fn parse_cli_args() -> ArgMatches<'static> {
+fn parse_cli_args() -> ArgMatches {
     App::new(env!("CARGO_PKG_NAME"))
         .version(VERSION)
         .author(env!("CARGO_PKG_AUTHORS"))
@@ -36,7 +36,9 @@ fn parse_cli_args() -> ArgMatches<'static> {
               * gtf              - GTF2.2 format\n\
               * bed              - Bedfile (one transcript per line)\n\
               * fasta            - Nucleotide sequence. There are multiple formatting options available\n\
-              * feature-sequence - Nucleotide sequence for every feature\n\
+              * fasta-split      - Like 'fasta', but every transcript is written to its own file. \
+              (--output must be the path to a folder)\n\
+              * feature-sequence - Nucleotide sequence for every 'feature' (UTR, CDS or non-coding exons)\n\
               * spliceai         - Custom format, as needed for SpliceAI\n\
               * qc               - Performs QC checks on all Transcripts\n\
               * bin              - Binary format"
@@ -47,48 +49,52 @@ fn parse_cli_args() -> ArgMatches<'static> {
         ).as_str())
         .arg(
             Arg::with_name("from")
-                .short("f")
+                .short('f')
                 .long("from")
                 .possible_values(&["genepredext", "refgene", "gtf", "bin"])
                 .case_insensitive(true)
                 .value_name("file-format")
                 .help("Data format of input file")
+                .display_order(1)
                 .takes_value(true)
                 .required(true),
         )
         .arg(
             Arg::with_name("to")
-                .short("t")
+                .short('t')
                 .long("to")
                 .possible_values(&["genepred", "genepredext", "refgene", "gtf", "bed", "fasta", "fasta-split", "feature-sequence", "spliceai", "raw", "bin", "qc", "none"])
                 .case_insensitive(true)
                 .value_name("file-format")
                 .help("data format of the output")
+                .display_order(3)
                 .takes_value(true)
                 .required(true),
         )
         .arg(
             Arg::with_name("input")
-                .short("i")
+                .short('i')
                 .long("input")
                 .value_name("/path/to/input/file")
                 .help("Path to input file")
+                .display_order(2)
                 .takes_value(true)
                 .default_value("/dev/stdin"),
         )
         .arg(
             Arg::with_name("output")
-                .short("o")
+                .short('o')
                 .long("output")
                 .value_name("/path/to/output/file")
                 .help("Path to output file")
+                .display_order(4)
                 .takes_value(true)
                 .default_value("/dev/stdout"),
         )
         .arg(
             Arg::with_name("gtf_source")
                 .long("gtf-source")
-                .short("-g")
+                .short('g')
                 .value_name("source")
                 .help("The feature source to indicate in GTF files (optional with `--output gtf`)")
                 .display_order(1000)
@@ -99,10 +105,10 @@ fn parse_cli_args() -> ArgMatches<'static> {
         .arg(
             Arg::with_name("fasta_reference")
                 .long("reference")
-                .short("-r")
+                .short('r')
                 .value_name("/path/to/reference.fasta")
                 .help("Path to reference genome fasta file. (required with `--output [fasta | fasta-split | feature-sequence]`)")
-                .display_order(1000)
+                .display_order(1001)
                 .takes_value(true)
                 .required_ifs(&[
                     ("to", "fasta"),
@@ -117,11 +123,15 @@ fn parse_cli_args() -> ArgMatches<'static> {
                 .possible_values(&["transcript", "exons", "cds"])
                 .value_name("format")
                 .help(
-                    "Which part of the transcript to translate. \
-                       (This option is only needed when generating \
-                       fasta output)",
+                    "Which part of the transcript to transcribe. \
+                    (This option is only needed when generating \
+                    fasta output)\n\
+                    * transcript - The full genomic sequence of the transcript \
+                    including introns. (similar to pre-processed mRNA)\n\
+                    * cds        - The coding sequence of the transcript.\n\
+                    * exons      - All exons of the transcript. (similar to processed mRNA)",
                 )
-                .display_order(1001)
+                .display_order(1002)
                 .takes_value(true)
                 .default_value("cds")
                 .required_ifs(&[
@@ -131,14 +141,38 @@ fn parse_cli_args() -> ArgMatches<'static> {
         )
         .arg(
             Arg::with_name("v")
-                .short("v")
-                .multiple(true)
+                .short('v')
+                .action(clap::ArgAction::Count)
                 .help("Sets the level of verbosity"),
+        )
+        .arg(
+            Arg::with_name("genetic_code")
+            .long("genetic-code")
+            .short('c')
+            .value_name("vertebrate_mitochondria")
+            .display_order(1003)
+            .takes_value(true)
+            .action(clap::ArgAction::Append)
+            .help(
+                "Specify which genetic code \
+                to use for translating the transcripts. \
+                Genetic codes can be specified globally (e.g. `-c standard`) \
+                or chromosome specific (e..g `-c chrM:vertebrate_mitochondria`). \
+                Genetic codes can be specified via their name or by specifying the \
+                amino acid lookup table directly. \
+                You can specify multiple genetic codes. \
+                Default is the standard genetic code for all transcripts. Most \
+                likely you want to use the default and specify the mitochondria code \
+                separately: `--genetic-code standard --genetic-code chrM:vertebrate_mitochondria`)
+                (optional with `--output qc`)"
+            )
         )
         .get_matches()
 }
 
-fn read_input_file(input_format: &str, input_fd: &str) -> Result<Transcripts, AtgError> {
+fn read_input_file(args: &ArgMatches) -> Result<Transcripts, AtgError> {
+    let input_format = args.value_of("from").unwrap();
+    let input_fd = args.value_of("input").unwrap();
     debug!("Reading {} transcripts from {}", input_format, input_fd);
 
     let transcripts = match input_format {
@@ -167,14 +201,13 @@ fn read_input_file(input_format: &str, input_fd: &str) -> Result<Transcripts, At
     Ok(transcripts)
 }
 
-fn write_output(
-    output_format: &str,
-    output_fd: &str,
-    gtf_source: Option<&str>,
-    fasta_reference: Option<&str>,
-    fasta_format: Option<&str>,
-    transcripts: Transcripts,
-) -> Result<(), AtgError> {
+fn write_output(args: &ArgMatches, transcripts: Transcripts) -> Result<(), AtgError> {
+    let output_fd = args.value_of("output").unwrap();
+    let output_format = args.value_of("to").unwrap();
+
+    let fasta_format = args.value_of("fasta_format");
+    let fasta_reference = args.value_of("fasta_reference");
+
     debug!("Writing transcripts as {} to {}", output_format, output_fd);
 
     match output_format {
@@ -192,7 +225,7 @@ fn write_output(
         }
         "gtf" => {
             let mut writer = gtf::Writer::from_file(output_fd)?;
-            writer.set_source(gtf_source.unwrap());
+            writer.set_source(args.value_of("gtf_source").unwrap());
             writer.write_transcripts(&transcripts)?
         }
         "bed" => {
@@ -237,6 +270,8 @@ fn write_output(
         }
         "qc" => {
             let mut writer = qc::Writer::from_file(output_fd)?;
+            let genetic_code_arg = args.get_many("genetic_code");
+            add_genetic_code(genetic_code_arg, &mut writer)?;
             writer.fasta_reader(FastaReader::from_file(fasta_reference.unwrap())?);
             writer.write_header()?;
             writer.write_transcripts(&transcripts)?
@@ -263,22 +298,36 @@ fn write_output(
     Ok(())
 }
 
+fn add_genetic_code<W: std::io::Write>(
+    genetic_code_arg: Option<clap::parser::ValuesRef<'_, String>>,
+    writer: &mut qc::Writer<W>,
+) -> Result<(), AtgError> {
+    for genetic_code_value in genetic_code_arg.unwrap_or_default() {
+        match genetic_code_value.split_once(':') {
+            // if the value contains a `:`, it is a key:value pair
+            // for chromosome:genetic_code.
+            Some((chrom, seq)) => {
+                let gen_code = GeneticCode::guess(seq)?;
+                debug!("Adding genetic code {} for {}", gen_code, chrom);
+                writer.add_genetic_code(chrom.to_string(), gen_code);
+            }
+            // Without `:` the genetic code is used as default
+            None => {
+                let gen_code = GeneticCode::guess(genetic_code_value)?;
+                debug!("Setting default genetic code to {}", gen_code);
+                writer.default_genetic_code(gen_code);
+            }
+        }
+    }
+    Ok(())
+}
+
 fn main() {
     let cli_commands = parse_cli_args();
 
-    loggerv::init_with_verbosity(cli_commands.occurrences_of("v")).unwrap();
+    loggerv::init_with_verbosity(cli_commands.get_count("v").into()).unwrap();
 
-    let input_fd = cli_commands.value_of("input").unwrap();
-    let output_fd = cli_commands.value_of("output").unwrap();
-
-    let input_format = cli_commands.value_of("from").unwrap();
-    let output_format = cli_commands.value_of("to").unwrap();
-
-    let gtf_source = cli_commands.value_of("gtf_source");
-    let fasta_format = cli_commands.value_of("fasta_format");
-    let fasta_reference = cli_commands.value_of("fasta_reference");
-
-    let transcripts = match read_input_file(input_format, input_fd) {
+    let transcripts = match read_input_file(&cli_commands) {
         Ok(x) => x,
         Err(err) => {
             println!("\x1b[1;31mError:\x1b[0m {}", err);
@@ -287,14 +336,7 @@ fn main() {
         }
     };
 
-    match write_output(
-        output_format,
-        output_fd,
-        gtf_source,
-        fasta_reference,
-        fasta_format,
-        transcripts,
-    ) {
+    match write_output(&cli_commands, transcripts) {
         Ok(_) => debug!("All done here."),
         Err(err) => {
             println!("\x1b[1;31mError:\x1b[0m {}", err);
