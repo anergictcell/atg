@@ -298,9 +298,9 @@ fn write_output(args: &ArgMatches, transcripts: Transcripts) -> Result<(), AtgEr
     Ok(())
 }
 
-fn add_genetic_code<W: std::io::Write>(
+fn add_genetic_code<W: std::io::Write, R: std::io::Read + std::io::Seek>(
     genetic_code_arg: Option<clap::parser::ValuesRef<'_, String>>,
-    writer: &mut qc::Writer<W>,
+    writer: &mut qc::Writer<W, R>,
 ) -> Result<(), AtgError> {
     for genetic_code_value in genetic_code_arg.unwrap_or_default() {
         match genetic_code_value.split_once(':') {
