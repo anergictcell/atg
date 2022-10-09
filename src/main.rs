@@ -6,20 +6,20 @@ use std::process;
 use bincode::{deserialize_from, serialize_into};
 use clap::{App, Arg, ArgMatches};
 
-use atglib::fasta::FastaReader;
-use atglib::models::Transcripts;
-use atglib::utils::errors::AtgError;
+use s3reader::{S3ObjectUri, S3Reader};
 
 use atglib::bed;
 use atglib::fasta;
+use atglib::fasta::FastaReader;
 use atglib::genepred;
 use atglib::genepredext;
 use atglib::gtf;
-use atglib::models::{GeneticCode, TranscriptWrite};
+use atglib::models::{GeneticCode, TranscriptWrite, Transcripts};
 use atglib::qc;
 use atglib::read_transcripts;
 use atglib::refgene;
 use atglib::spliceai;
+use atglib::utils::errors::AtgError;
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -107,7 +107,10 @@ fn parse_cli_args() -> ArgMatches {
                 .long("reference")
                 .short('r')
                 .value_name("/path/to/reference.fasta")
-                .help("Path to reference genome fasta file. (required with `--output [fasta | fasta-split | feature-sequence]`)")
+                .help(
+                    "Path to reference genome fasta file. (required with `--output [fasta | fasta-split | feature-sequence]`) \n\
+                    You can also specify an S3 Uri (s3://mybucket/myfile.fasta), but reading from S3 is currently quite slow"
+                )
                 .display_order(1001)
                 .takes_value(true)
                 .required_ifs(&[
@@ -129,7 +132,7 @@ fn parse_cli_args() -> ArgMatches {
                     * transcript - The full genomic sequence of the transcript \
                     including introns. (similar to pre-processed mRNA)\n\
                     * cds        - The coding sequence of the transcript.\n\
-                    * exons      - All exons of the transcript. (similar to processed mRNA)",
+                    * exons      - All exons of the transcript. (similar to processed mRNA)"
                 )
                 .display_order(1002)
                 .takes_value(true)
@@ -201,6 +204,25 @@ fn read_input_file(args: &ArgMatches) -> Result<Transcripts, AtgError> {
     Ok(transcripts)
 }
 
+fn get_fasta_reader(filename: &Option<&str>) -> Option<FastaReader<ReadSeekWrapper>> {
+    // Both fasta_reader and fai_reader are Result<ReadSeekWrapper> instances
+    // so they can be accessed via `?`
+    let fasta_reader = ReadSeekWrapper::from_cli_arg(filename);
+    let fai_reader = match &fasta_reader {
+        Ok(r) => Ok(ReadSeekWrapper::from_filename(&format!(
+            "{}.fai",
+            r.filename()
+        ))),
+        Err(err) => Err(AtgError::new(format!("invalid fasta reader: {}", err))),
+    };
+
+    if let (Ok(fasta_wrapper), Ok(fai_wrapper)) = (fasta_reader, fai_reader) {
+        Some(FastaReader::from_reader(fasta_wrapper, fai_wrapper).unwrap())
+    } else {
+        None
+    }
+}
+
 fn write_output(args: &ArgMatches, transcripts: Transcripts) -> Result<(), AtgError> {
     let output_fd = args.value_of("output").unwrap();
     let output_format = args.value_of("to").unwrap();
@@ -209,6 +231,8 @@ fn write_output(args: &ArgMatches, transcripts: Transcripts) -> Result<(), AtgEr
     let fasta_reference = args.value_of("fasta_reference");
 
     debug!("Writing transcripts as {} to {}", output_format, output_fd);
+
+    let fastareader = get_fasta_reader(&fasta_reference);
 
     match output_format {
         "refgene" => {
@@ -234,7 +258,9 @@ fn write_output(args: &ArgMatches, transcripts: Transcripts) -> Result<(), AtgEr
         }
         "fasta" => {
             let mut writer = fasta::Writer::from_file(output_fd)?;
-            writer.fasta_reader(FastaReader::from_file(fasta_reference.unwrap())?);
+            writer.fasta_reader(
+                fastareader.ok_or_else(|| AtgError::new("unable to open fasta file"))?,
+            );
             writer.fasta_format(fasta_format.unwrap());
             writer.write_transcripts(&transcripts)?
         }
@@ -245,21 +271,23 @@ fn write_output(args: &ArgMatches, transcripts: Transcripts) -> Result<(), AtgEr
                     "fasta-split requires a directory as --output option",
                 ));
             }
+            let mut writer = fasta::Writer::from_file("/dev/null")?;
+            writer.fasta_reader(
+                fastareader.ok_or_else(|| AtgError::new("unable to open fasta file"))?,
+            );
+            writer.fasta_format(fasta_format.unwrap());
+
             for tx in transcripts {
                 let outfile = outdir.join(format!("{}.fasta", tx.name()));
-                let mut writer = fasta::Writer::from_file(
-                    outfile
-                        .to_str()
-                        .expect("ATG does not support non-UTF8 filename"),
-                )?;
-                writer.fasta_reader(FastaReader::from_file(fasta_reference.unwrap())?);
-                writer.fasta_format(fasta_format.unwrap());
+                *writer.inner_mut() = std::io::BufWriter::new(File::create(outfile)?);
                 writer.writeln_single_transcript(&tx)?;
             }
         }
         "feature-sequence" => {
             let mut writer = fasta::Writer::from_file(output_fd)?;
-            writer.fasta_reader(FastaReader::from_file(fasta_reference.unwrap())?);
+            writer.fasta_reader(
+                fastareader.ok_or_else(|| AtgError::new("unable to open fasta file"))?,
+            );
             for tx in transcripts {
                 writer.write_features(&tx)?
             }
@@ -272,7 +300,9 @@ fn write_output(args: &ArgMatches, transcripts: Transcripts) -> Result<(), AtgEr
             let mut writer = qc::Writer::from_file(output_fd)?;
             let genetic_code_arg = args.get_many("genetic_code");
             add_genetic_code(genetic_code_arg, &mut writer)?;
-            writer.fasta_reader(FastaReader::from_file(fasta_reference.unwrap())?);
+            writer.fasta_reader(
+                fastareader.ok_or_else(|| AtgError::new("unable to open fasta file"))?,
+            );
             writer.write_header()?;
             writer.write_transcripts(&transcripts)?
         }
@@ -298,9 +328,88 @@ fn write_output(args: &ArgMatches, transcripts: Transcripts) -> Result<(), AtgEr
     Ok(())
 }
 
-fn add_genetic_code<W: std::io::Write>(
+// There will be only a single instance of this enum
+// so we can allow a large variant
+#[allow(clippy::large_enum_variant)]
+/// ReadSeekWrapper is an enum to allow dynamic assignment of either File or S3 Readers
+/// to be used in the Reader objects of Atglib.
+enum ReadSeekWrapper {
+    File(File, String),
+    S3(S3Reader, String),
+}
+
+impl ReadSeekWrapper {
+    pub fn from_filename(filename: &str) -> Self {
+        if filename.starts_with("s3://") {
+            let uri = S3ObjectUri::new(filename).unwrap();
+            let s3obj = S3Reader::open(uri).unwrap();
+            Self::S3(s3obj, filename.to_string())
+        } else {
+            Self::File(File::open(filename).unwrap(), filename.to_string())
+        }
+    }
+
+    pub fn from_cli_arg(filename: &Option<&str>) -> Result<ReadSeekWrapper, AtgError> {
+        if let Some(filename) = filename {
+            if filename.starts_with("s3://") {
+                let uri = S3ObjectUri::new(filename).unwrap();
+                let s3obj = S3Reader::open(uri).unwrap();
+                Ok(Self::S3(s3obj, filename.to_string()))
+            } else {
+                Ok(Self::File(
+                    File::open(filename).unwrap(),
+                    filename.to_string(),
+                ))
+            }
+        } else {
+            Err(AtgError::new("No file specified"))
+        }
+    }
+
+    pub fn filename(&self) -> &str {
+        match self {
+            ReadSeekWrapper::File(_, fname) => fname,
+            ReadSeekWrapper::S3(_, fname) => fname,
+        }
+    }
+}
+
+// forward all custom implementations straight to the actual reader
+impl std::io::Read for ReadSeekWrapper {
+    fn read(&mut self, buf: &mut [u8]) -> Result<usize, std::io::Error> {
+        match self {
+            ReadSeekWrapper::S3(r, _) => r.read(buf),
+            ReadSeekWrapper::File(r, _) => r.read(buf),
+        }
+    }
+
+    fn read_to_end(&mut self, buf: &mut Vec<u8>) -> Result<usize, std::io::Error> {
+        match self {
+            ReadSeekWrapper::S3(r, _) => r.read_to_end(buf),
+            ReadSeekWrapper::File(r, _) => r.read_to_end(buf),
+        }
+    }
+
+    fn read_to_string(&mut self, buf: &mut String) -> Result<usize, std::io::Error> {
+        match self {
+            ReadSeekWrapper::S3(r, _) => r.read_to_string(buf),
+            ReadSeekWrapper::File(r, _) => r.read_to_string(buf),
+        }
+    }
+}
+
+impl std::io::Seek for ReadSeekWrapper {
+    fn seek(&mut self, pos: std::io::SeekFrom) -> Result<u64, std::io::Error> {
+        match self {
+            ReadSeekWrapper::S3(r, _) => r.seek(pos),
+            ReadSeekWrapper::File(r, _) => r.seek(pos),
+        }
+    }
+}
+
+fn add_genetic_code<W: std::io::Write, R: std::io::Read + std::io::Seek>(
     genetic_code_arg: Option<clap::parser::ValuesRef<'_, String>>,
-    writer: &mut qc::Writer<W>,
+    writer: &mut qc::Writer<W, R>,
 ) -> Result<(), AtgError> {
     for genetic_code_value in genetic_code_arg.unwrap_or_default() {
         match genetic_code_value.split_once(':') {
