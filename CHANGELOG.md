@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.8.0
+- Add QC-filter option
+- Add option to specify custom genetic codes
+- Allow using S3 objects for Fasta reference files (using [`S3Reader`](https://crates.io/crates/s3reader))
+- Switch to [`ATGLib` 0.2.0](https://crates.io/crates/atglib)
+- Switch to `clap` v4 and use `Derive`
+
 ## 0.7.0
 - Switch to ATGlib 0.1.4
 - Add `spliceai` ouput format
