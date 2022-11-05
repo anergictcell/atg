@@ -61,6 +61,7 @@ Additional, optional arguments:
 - `-g`, `--gtf-source`: Specify the source for GTF output files. Defaults to `atg`
 - `-r`, `--reference`: Path of a reference genome fasta file. Required for fasta output
 - `-c`, `--genetic-code`: Specify which genetic code to use for translating the transcripts. Genetic codes can be specified per chromosome by specifying the chromsome and the code, separated by `:` (e.g. `-c chrM:vertebrate mitochondrial`). They can also be specified for all chromsomes by omitting the chromosome (e.g. `-c vertebrate mitochondrial`). The argument can be specified multiple times (e.g: `-c "standard" -c "chrM:vertebrate mitochondrial" -c "chrAYN:alternative yeast nuclear"`). The code names are based on the `name` field from the [NCBI specs](https://www.ncbi.nlm.nih.gov/IEB/ToolBox/C_DOC/lxr/source/data/gc.prt) but all lowercase characters. Alternatively, you can also specify the amino acid lookup table directly: `-c "chrM:FFLLSSSSYY**CCWWLLLLPPPPHHQQRRRRIIMMTTTTNNKKSS**VVVVAAAADDEEGGGG"`. Defaults to `standard`.
+- `-q`, `--qc-check`: Specify QC-checks for removing transcripts from the output
 
 #### Examples:
 ```bash
@@ -78,6 +79,10 @@ atg --from refgene --to gtf --input /path/to/input.refgene --output /path/to/out
 
 ## Convert RefGene to bed
 atg --from refgene --to bed --input /path/to/input.refgene --output /path/to/output.bed
+
+
+## Convert a GTF file to a RefGene file, remove all transcript without proper start and stop codons
+atg --from gtf --to refgene --input /path/to/input.gtf --output /path/to/output.refgene --qc-check start --qc-check stop --reference /path/to/fasta.fa
 ```
 
 ### Supported `--output` formats
