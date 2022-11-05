@@ -108,6 +108,12 @@ test:
         (diff <( cargo run -q -- -f gtf -i tests/data/example.gtf -r tests/data/hg19.fasta -t qc | tail -n +2  | cut -f3-9 | sort |  uniq -c | sed "s/ //g") <(echo -ne "14OK\tOK\tOK\tOK\tNOK\tOK\tOK\n13OK\tOK\tOK\tOK\tOK\tOK\tOK\n") && \
         echo " \e[32m\e[1mOK\e[0m") || echo "\e[31m\e[1mERROR\e[0m"
 
+        echo -ne "Test Filter"
+        (diff <( cargo run -q -- -f gtf -i tests/data/example.gtf -t refgene  -r tests/data/hg19.fasta -q exon -q start -q stop -q exon -q cds-length -q upstream-start -q upstream-stop -q coordinates | wc -l | sed "s/ //g") <(echo -ne "13\n") && \
+        diff <( cargo run -q -- -f gtf -i tests/data/example.gtf -t refgene  -r tests/data/hg19.fasta -q exon -q start -q stop -q exon -q cds-length -q upstream-stop -q coordinates | wc -l | sed "s/ //g") <(echo -ne "27\n") && \
+        diff <( cargo run -q -- -f gtf -i tests/data/example.gtf -t refgene  -r tests/data/hg19.fasta -q upstream-stop -c "chrY:vertebrate mitochondrial" | wc -l | sed "s/ //g") <(echo -ne "26\n") && \
+        echo " \e[32m\e[1mOK\e[0m") || echo "\e[31m\e[1mERROR\e[0m"
+
     fi
 
 benchmark name:
