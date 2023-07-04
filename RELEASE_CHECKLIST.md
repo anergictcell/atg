@@ -6,6 +6,7 @@
   should do this with every commit!)
 - (Optional): Run unittests and checks: `just check <VERSION>`
 - (Optional): Build binaries: `just build <VERSION>`
+- Test the main functionality `just test`
 - Release to crates.io (This step run tests and build steps from above): `just release <VERSION>`
 - Create GitHub release
   - Click "Create new release"
