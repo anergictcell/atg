@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.8.3.
+- Pin serde version (See https://github.com/serde-rs/serde/issues/2538 for context)
+
 ## 0.8.0
 - Add QC-filter option
 - Add option to specify custom genetic codes
