@@ -1,6 +1,6 @@
 [package]
 name = "atg"
-version = "0.8.3"
+version = "0.8.4"
 authors = ["Jonas Marcello <jonas.marcello@esbme.com>"]
 edition = "2018"
 description = "Convert transcripts between different file formats"
