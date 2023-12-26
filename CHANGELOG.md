@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.8.4.
+- Unpin `serde`, the issue from 0.8.3 has been fixed
+- Update other dependencies, fix security issue in dependencies
+
 ## 0.8.3.
 - Pin serde version (See https://github.com/serde-rs/serde/issues/2538 for context)
 
