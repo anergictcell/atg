@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.8.5
+- Update dependencies
+
 ## 0.8.4.
 - Unpin `serde`, the issue from 0.8.3 has been fixed
 - Update other dependencies, fix security issue in dependencies
