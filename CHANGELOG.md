@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.8.5
+- Update dependencies
+- Include [update from `atglib`](https://github.com/anergictcell/atglib/pull/19) to fix bug in GTF parsing of `gene` records
+
 ## 0.8.4.
 - Unpin `serde`, the issue from 0.8.3 has been fixed
 - Update other dependencies, fix security issue in dependencies
