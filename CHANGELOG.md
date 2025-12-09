@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.8.7
+- Update dependencies
+
 ## 0.8.6
 - Update dependencies
 - Include [update from `atglib`](https://github.com/anergictcell/atglib/pull/19) to fix bug in GTF parsing of `gene` records
